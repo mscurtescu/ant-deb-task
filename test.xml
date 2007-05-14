@@ -1,0 +1,44 @@
+<project name="JavaDeb Task Test" basedir=".">
+
+    <path id="classpath">
+        <pathelement location="classes"/>
+        <fileset dir="lib" includes="*.jar"/>
+    </path>
+
+    <taskdef name="desktopEntry" classname="com.googlecode.ant_deb_task.DesktopEntry" classpathref="classpath"/>
+    <taskdef name="deb" classname="com.googlecode.ant_deb_task.Deb" classpathref="classpath"/>
+
+    <target name="testDesktopEntry" description="Test the DesktopEntry task">
+        <mkdir dir="build/test"/>
+        <desktopEntry
+            toFile="build/test/Test.desktop"
+            name="Name"
+        />
+    </target>
+
+    <target name="testDeb" description="Tes the Deb task">
+        <mkdir dir="build/test"/>
+        <deb
+            todir="build/test"
+            package="test"
+            version="1.1"
+            section="debug"
+            depends="sun-java5-jre | sun-java6-jre"
+            maintainer="Marius Scurtescu &lt;marius.scurtescu@gmail.com&gt;">
+            <description synopsis="Short Description">
+
+                Long description
+
+                on multiple lines
+                
+            </description>
+            <tarfileset dir="." includes="src/**, lib/**"/>
+        </deb>
+
+    </target>
+
+    <target name="clean" description="Clean work folders">
+        <delete dir="build"/>
+    </target>
+
+</project>
