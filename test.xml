@@ -1,14 +1,20 @@
-<project name="JavaDeb Task Test" basedir=".">
+<project name="JavaDeb Task" basedir=".">
 
     <path id="classpath">
-        <pathelement location="classes"/>
+        <pathelement location="build/classes"/>
         <fileset dir="lib" includes="*.jar"/>
     </path>
 
     <taskdef name="desktopEntry" classname="com.googlecode.ant_deb_task.DesktopEntry" classpathref="classpath"/>
     <taskdef name="deb" classname="com.googlecode.ant_deb_task.Deb" classpathref="classpath"/>
 
-    <target name="testDesktopEntry" description="Test the DesktopEntry task">
+    <target name="compile" description="Compile Java source code">
+        <javac
+            srcdir="src"
+            destdir="build/classes"/>
+    </target>
+
+    <target name="testDesktopEntry" depends="compile" description="Test the DesktopEntry task">
         <mkdir dir="build/test"/>
         <desktopEntry
             toFile="build/test/Test.desktop"
@@ -16,7 +22,7 @@
         />
     </target>
 
-    <target name="testDeb" description="Tes the Deb task">
+    <target name="testDeb" depends="compile" description="Tes the Deb task">
         <mkdir dir="build/test"/>
         <deb
             todir="build/test"
