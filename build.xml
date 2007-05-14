@@ -1,4 +1,4 @@
-<project name="JavaDeb Task" basedir=".">
+<project name="JavaDeb Task" basedir="." default="dist">
 
     <path id="classpath">
         <pathelement location="build/classes"/>
@@ -10,6 +10,17 @@
         <javac
             srcdir="src"
             destdir="build/classes"/>
+    </target>
+
+    <target name="jar" depends="compile" description="Package compiled classes into a jar">
+        <jar
+            basedir="build/classes"
+            destfile="build/ant-deb.jar"/>
+    </target>
+
+    <target name="dist" depends="jar" description="Generate and package all distributables">
+        <mkdir dir="dist"/>
+        <copy file="build/ant-deb.jar" todir="dist"/>
     </target>
 
     <target name="define_tasks" depends="compile">
@@ -33,7 +44,7 @@
             version="1.1"
             section="debug"
             depends="sun-java5-jre | sun-java6-jre"
-            maintainer="Marius Scurtescu &lt;marius.scurtescu@gmail.com&gt;">
+            maintainer="John Tester &lt;jtester@example.com&gt;">
             <description synopsis="Short Description">
 
                 Long description
@@ -48,6 +59,7 @@
 
     <target name="clean" description="Clean work folders">
         <delete dir="build"/>
+        <delete dir="dist"/>
     </target>
 
 </project>
