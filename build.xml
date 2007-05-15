@@ -32,8 +32,11 @@
         <mkdir dir="build/test"/>
         <desktopEntry
             toFile="build/test/Test.desktop"
-            name="Name"
-        />
+            name="Some Name">
+            <name lang="ro" value="Un nume"/>
+            <name lang="hu" country="hu" value="Edgy nev"/>
+            <genericName value="The Generic Name"/>
+        </desktopEntry>
     </target>
 
     <target name="testDeb" depends="define_tasks" description="Tes the Deb task">
