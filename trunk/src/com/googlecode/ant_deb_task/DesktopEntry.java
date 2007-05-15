@@ -1,25 +1,145 @@
 package com.googlecode.ant_deb_task;
 
 import org.apache.tools.ant.*;
+import org.apache.tools.ant.types.EnumeratedAttribute;
+
 import java.io.*;
-import java.util.Map;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
+import java.util.*;
 
 public class DesktopEntry extends Task
 {
     private File _toFile;
 
     private Map _entries;
+    private List _localizedEntries = new ArrayList ();
+
+    public static class LocalizedEntry
+    {
+        private String _key;
+        private String _lang;
+        private String _country;
+        private String _encoding;
+        private String _modifier;
+        private String _value;
+
+        public LocalizedEntry (String key)
+        {
+            _key = key;
+        }
+
+        public void setLang (String lang)
+        {
+            _lang = lang;
+        }
+
+        public void setCountry (String country)
+        {
+            _country = country;
+        }
+
+        public void setEncoding (String encoding)
+        {
+            _encoding = encoding;
+        }
+
+        public void setModifier (String modifier)
+        {
+            _modifier = modifier;
+        }
+
+        public void setValue (String value)
+        {
+            _value = value;
+        }
+
+        public String toString()
+        {
+            StringBuffer buffer = new StringBuffer (_key);
+
+            if (_lang != null)
+            {
+                buffer.append ('[');
+
+                buffer.append (_lang.toLowerCase ());
+
+                if (_country != null)
+                {
+                    buffer.append ('_');
+                    buffer.append (_country.toUpperCase ());
+                }
+
+                if (_encoding != null)
+                {
+                    buffer.append ('.');
+                    buffer.append (_encoding);
+                }
+
+                if (_modifier != null)
+                {
+                    buffer.append ('@');
+                    buffer.append (_modifier);
+                }
+
+                buffer.append (']');
+            }
+
+            return buffer.toString ();
+        }
+
+        public String getValue ()
+        {
+            return _value;
+        }
+    }
+
+    public static class Name extends LocalizedEntry
+    {
+        public Name ()
+        {
+            super ("Name");
+        }
+    }
+
+    public static class GenericName extends LocalizedEntry
+    {
+        public GenericName ()
+        {
+            super ("GenericName");
+        }
+    }
+
+    public static class Comment extends LocalizedEntry
+    {
+        public Comment ()
+        {
+            super ("Comment");
+        }
+    }
+
+    public static class Icon extends LocalizedEntry
+    {
+        public Icon ()
+        {
+            super ("Icon");
+        }
+    }
+
+    public static class Type extends EnumeratedAttribute
+    {
+        public String[] getValues ()
+        {
+            return new String[] {"Application", "Link", "Directory"};
+        }
+    }
 
     public void setToFile(File toFile)
     {
         _toFile = toFile;
     }
 
-    public void setType (String type)
+    public void setType (Type type)
     {
-        _entries.put("Type", type);
+        _entries.put("Type", type.getValue ());
     }
 
     public void setName(String name)
@@ -92,6 +212,26 @@ public class DesktopEntry extends Task
         _entries.put("Url", url);
     }
 
+    public void addName(DesktopEntry.Name name)
+    {
+        _localizedEntries.add (name);
+    }
+
+    public void addGenericName(GenericName genericName)
+    {
+        _localizedEntries.add (genericName);
+    }
+
+    public void addComment(Comment comment)
+    {
+        _localizedEntries.add (comment);
+    }
+
+    public void addIcon(Icon icon)
+    {
+        _localizedEntries.add (icon);
+    }
+
     public void init() throws BuildException
     {
         _entries = new LinkedHashMap();
@@ -105,6 +245,15 @@ public class DesktopEntry extends Task
     {
         try
         {
+            log ("Generating desktop entry to: " + _toFile.getAbsolutePath ());
+
+            for (int i = 0; i < _localizedEntries.size (); i++)
+            {
+                LocalizedEntry localizedEntry = (LocalizedEntry) _localizedEntries.get (i);
+
+                _entries.put (localizedEntry.toString (), localizedEntry.getValue ());
+            }
+
             PrintWriter out = new PrintWriter(_toFile);
 
             out.println("[Desktop Entry]");
