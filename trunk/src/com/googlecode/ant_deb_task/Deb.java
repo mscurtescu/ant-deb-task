@@ -3,19 +3,23 @@ package com.googlecode.ant_deb_task;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.Project;
+import org.apache.tools.ant.ProjectComponent;
 import org.apache.tools.ant.taskdefs.Tar;
-import org.apache.tools.ant.types.TarFileSet;
+import org.apache.tools.ant.types.*;
 import org.apache.tools.ant.types.resources.FileResource;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Iterator;
+import java.util.*;
+import java.util.regex.*;
 
 public class Deb extends Task
 {
-    public static class Description extends Task
+    private static final Pattern PACKAGE_NAME_PATTERN = Pattern.compile("[a-z0-9][a-z0-9+\\-.]+");
+    
+    public static class Description extends ProjectComponent
     {
         private String _synopsis;
         private String _extended = "";
@@ -27,7 +31,7 @@ public class Deb extends Task
 
         public void setSynopsis (String synopsis)
         {
-            _synopsis = synopsis;
+            _synopsis = synopsis.trim ();
         }
 
         public void addText (String text)
@@ -84,24 +88,147 @@ public class Deb extends Task
             return buffer.toString ();
         }
     }
+    
+    public static class Version extends ProjectComponent
+    {
+        private static final Pattern UPSTREAM_VERSION_PATTERN = Pattern.compile("[0-9][A-Za-z0-9+\\-.:]*");
+        private static final Pattern DEBIAN_VERSION_PATTERN = Pattern.compile("[A-Za-z0-9+\\-]+");
+        
+        private int _epoch = 0;
+        private String _upstream;
+        private String _debian = "1";
 
+        public void setEpoch(int epoch)
+        {
+            _epoch = epoch;
+        }
+
+        public void setUpstream(String upstream)
+        {
+            _upstream = upstream.trim ();
+
+            if (!UPSTREAM_VERSION_PATTERN.matcher (_upstream).matches ())
+                throw new BuildException("Invalid upstream version number!");
+        }
+
+        public void setDebian(String debian)
+        {
+            _debian = debian.trim ();
+
+            if (!DEBIAN_VERSION_PATTERN.matcher (_debian).matches ())
+                throw new BuildException("Invalid debian version number!");
+        }
+
+        public String toString()
+        {
+            StringBuffer version = new StringBuffer();
+            
+            if (_epoch > 0)
+            {
+                version.append(_epoch);
+                version.append(':');
+            }
+            else if (_upstream.indexOf(':') > -1)
+                throw new BuildException("Upstream version can contain colons only if epoch is specified!");
+            
+            version.append(_upstream);
+            
+            if (_debian.length() > 0)
+            {
+                version.append('-');
+                version.append(_debian);
+            }
+            else if (_upstream.indexOf('-') > -1)
+                throw new BuildException("Upstream version can contain hyphens only if debian version is specified!");
+            
+            return version.toString();
+        }
+    }
+
+    public static class Maintainer extends ProjectComponent
+    {
+        private String _name;
+        private String _email;
+
+        public void setName (String name)
+        {
+            _name = name.trim ();
+        }
+
+        public void setEmail (String email)
+        {
+            _email = email.trim ();
+        }
+
+        public String toString()
+        {
+            if (_name == null || _name.length () == 0)
+                return _email;
+
+            StringBuffer buffer = new StringBuffer (_name);
+
+            buffer.append (" <");
+            buffer.append (_email);
+            buffer.append (">");
+
+            return buffer.toString ();
+        }
+    }
+    public static class Section extends EnumeratedAttribute
+    {
+        private static final String[] PREFIXES = new String[] {"", "contrib/", "non-free/"};
+        private static final String[] BASIC_SECTIONS = new String[] {"admin", "base", "comm", "devel", "doc", "editors", "electronics", "embedded", "games", "gnome", "graphics", "hamradio", "interpreters", "kde", "libs", "libdevel", "mail", "math", "misc", "net", "news", "oldlibs", "otherosfs", "perl", "python", "science", "shells", "sound", "tex", "text", "utils", "web", "x11"};
+
+        private List sections = new ArrayList (PREFIXES.length * BASIC_SECTIONS.length);
+
+        public Section ()
+        {
+            for (int i = 0; i < PREFIXES.length; i++)
+            {
+                String prefix = PREFIXES[i];
+
+                for (int j = 0; j < BASIC_SECTIONS.length; j++)
+                {
+                    String basicSection = BASIC_SECTIONS[j];
+
+                    sections.add (prefix + basicSection);
+                }
+            }
+        }
+
+        public String[] getValues ()
+        {
+            return (String[]) sections.toArray (new String[]{});
+        }
+    }
+    
+    public static class Priority extends EnumeratedAttribute
+    {
+        public String[] getValues ()    
+        {
+            return new String[] {"required", "important", "standard", "optional", "extra"};
+        }
+    }
+    
     private File _toDir;
 
     private String _package;
     private String _version;
+    private Deb.Version _versionObj;
     private String _section;
     private String _priority = "extra";
     private String _architecture = "all";
     private String _depends;
     private String _preDepends;
     private String _recommends;
-    private String _suggest;
+    private String _suggests;
     private String _enhances;
     private String _conflicts;
     private String _maintainer;
+    private Deb.Maintainer _maintainerObj;
     private Deb.Description _description;
 
-    private TarFileSet _data;
+    private List _data = new ArrayList();
 
     private File _tempFolder;
 
@@ -119,6 +246,9 @@ public class Deb extends Task
 
     public void setPackage (String packageName)
     {
+        if (!PACKAGE_NAME_PATTERN.matcher(packageName).matches())
+            throw new BuildException("Invalid package name!");
+            
         _package = packageName;
     }
 
@@ -127,14 +257,14 @@ public class Deb extends Task
         _version = version;
     }
 
-    public void setSection (String section)
+    public void setSection (Section section)
     {
-        _section = section;
+        _section = section.getValue();
     }
 
-    public void setPriority (String priority)
+    public void setPriority (Priority priority)
     {
-        _priority = priority;
+        _priority = priority.getValue();
     }
 
     public void setArchitecture (String architecture)
@@ -157,9 +287,9 @@ public class Deb extends Task
         _recommends = recommends;
     }
 
-    public void setSuggest (String suggest)
+    public void setSuggests (String suggests)
     {
-        _suggest = suggest;
+        _suggests = suggests;
     }
 
     public void setEnhances (String enhances)
@@ -184,12 +314,22 @@ public class Deb extends Task
 
     public void add (TarFileSet resourceCollection)
     {
-        _data = resourceCollection;
+        _data.add(resourceCollection);
+    }
+
+    public void addVersion(Deb.Version version)
+    {
+        _versionObj = version;
+    }
+
+    public void addMaintainer(Deb.Maintainer maintainer)
+    {
+        _maintainerObj = maintainer;
     }
 
     private void writeControlFile (File controlFile, long installedSize) throws FileNotFoundException
     {
-        log ("Generating control file to: " + controlFile.getAbsolutePath ());
+        log ("Generating control file to: " + controlFile.getAbsolutePath (), Project.MSG_VERBOSE);
 
         PrintWriter control = new PrintWriter (controlFile);
 
@@ -232,10 +372,10 @@ public class Deb extends Task
             control.println (_recommends);
         }
 
-        if (_suggest != null)
+        if (_suggests != null)
         {
             control.print ("Suggests: ");
-            control.println (_suggest);
+            control.println (_suggests);
         }
 
         if (_enhances != null)
@@ -301,6 +441,12 @@ public class Deb extends Task
     {
         try
         {
+            if (_versionObj != null)
+                _version = _versionObj.toString ();
+
+            if (_maintainerObj != null)
+                _maintainer = _maintainerObj.toString ();
+
             _tempFolder = createTempFolder();
             
             File debFile = new File (_toDir, _package + "_" + _version + "_" + _architecture + ".deb");
@@ -309,6 +455,7 @@ public class Deb extends Task
 
             File masterControlFile = createMasterControlFile ();
 
+            log ("Writing deb file to: " + debFile.getAbsolutePath());
             BuildDeb.buildDeb (debFile, masterControlFile, dataFile);
 
             masterControlFile.delete ();
@@ -329,9 +476,11 @@ public class Deb extends Task
         dataTar.setTaskName (getTaskName ());
         dataTar.setDestFile (dataFile);
         dataTar.setCompression (GZIP_COMPRESSION_METHOD);
-        dataTar.add (_data);
+        Iterator filesets = _data.iterator();
+        while (filesets.hasNext())
+            dataTar.add ((TarFileSet) filesets.next());
 
-        dataTar.perform ();
+        dataTar.execute ();
 
         return dataFile;
     }
@@ -355,15 +504,62 @@ public class Deb extends Task
     {
         long total = 0;
 
-        Iterator resouces = _data.iterator ();
-        while (resouces.hasNext ())
+        Iterator filesets = _data.iterator();
+        while (filesets.hasNext())
         {
-            FileResource resource = (FileResource) resouces.next ();
-            File file = resource.getFile ();
+            TarFileSet fileset = (TarFileSet) filesets.next();
             
-            total += file.length ();
+            Iterator resouces = fileset.iterator ();
+            while (resouces.hasNext ())
+            {
+                FileResource resource = (FileResource) resouces.next ();
+                File file = resource.getFile ();
+                
+                total += file.length ();
+            }
         }
 
         return total;
+    }
+
+    private void scanData()
+    {
+        Iterator filesets = _data.iterator();
+        while (filesets.hasNext())
+        {
+            TarFileSet fileset = (TarFileSet) filesets.next();
+
+            String fullPath = fileset.getFullpath (getProject ());
+            String prefix = fileset.getPrefix (getProject ());
+
+            if (!prefix.endsWith ("/"))
+                prefix += '/';
+
+            Iterator resouces = fileset.iterator ();
+            while (resouces.hasNext ())
+            {
+                FileResource resource = (FileResource) resouces.next ();
+                String targetName;
+
+                if (fullPath.length () > 0)
+                    targetName = fullPath;
+                else
+                    targetName = prefix + resource.getName ();
+
+                if (resource.isDirectory ())
+                {
+
+                }
+                else
+                {
+                    File file = resource.getFile ();
+
+                    // todo:
+                    // calculate installed size, just as in previous method, but save to instace var
+                    // calculate and collect md5 sums
+                    // get target folder names, and collect them (to be added to _data)
+                }
+            }
+        }
     }
 }

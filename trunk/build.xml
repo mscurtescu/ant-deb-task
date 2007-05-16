@@ -9,7 +9,8 @@
         <mkdir dir="build/classes"/>
         <javac
             srcdir="src"
-            destdir="build/classes"/>
+            destdir="build/classes"
+            classpathref="classpath"/>
     </target>
 
     <target name="jar" depends="compile" description="Package compiled classes into a jar">
@@ -46,8 +47,9 @@
             package="test"
             version="1.1"
             section="debug"
-            depends="sun-java5-jre | sun-java6-jre"
-            maintainer="John Tester &lt;jtester@example.com&gt;">
+            depends="sun-java5-jre | sun-java6-jre">
+            <version epoch="2" upstream="1.1" debian="test1"/>
+            <maintainer name="John Tester" email="jtester@example.com"/>
             <description synopsis="Short Description">
 
                 Long description
