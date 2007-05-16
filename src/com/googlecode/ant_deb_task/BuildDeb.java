@@ -49,6 +49,8 @@ public class BuildDeb
             deb.write(buffer, 0, read);
         }
         data.close();
+        if (dataFile.length() % 2 == 1)
+            deb.print('\n');
 
         deb.close();
     }
