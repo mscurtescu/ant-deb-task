@@ -1,19 +1,13 @@
 package com.googlecode.ant_deb_task;
 
-import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.Task;
-import org.apache.tools.ant.Project;
-import org.apache.tools.ant.ProjectComponent;
+import org.apache.tools.ant.*;
 import org.apache.tools.ant.taskdefs.Tar;
 import org.apache.tools.ant.types.*;
-import org.apache.tools.ant.types.resources.FileResource;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.*;
 import java.util.regex.*;
+import java.security.MessageDigest;
 
 public class Deb extends Task
 {
@@ -232,6 +226,9 @@ public class Deb extends Task
 
     private File _tempFolder;
 
+    private long _installedSize = 0;
+    private SortedSet _dataFolders;
+
     private static final Tar.TarCompressionMethod GZIP_COMPRESSION_METHOD = new Tar.TarCompressionMethod ();
 
     static
@@ -410,7 +407,9 @@ public class Deb extends Task
     {
         File controlFile = new File (_tempFolder, "control");
 
-        writeControlFile (controlFile, getInstalledSize ());
+        writeControlFile (controlFile, _installedSize);
+
+        File md5sumsFile = new File (_tempFolder, "md5sums");
 
         File masterControlFile = new File (_tempFolder, "control.tar.gz");
 
@@ -421,6 +420,7 @@ public class Deb extends Task
         controlTar.setCompression (GZIP_COMPRESSION_METHOD);
 
         addFileToTar (controlTar, controlFile, "control");
+        addFileToTar (controlTar, md5sumsFile, "md5sums");
 
         controlTar.perform ();
 
@@ -448,6 +448,8 @@ public class Deb extends Task
                 _maintainer = _maintainerObj.toString ();
 
             _tempFolder = createTempFolder();
+
+            scanData ();
             
             File debFile = new File (_toDir, _package + "_" + _version + "_" + _architecture + ".deb");
 
@@ -476,9 +478,21 @@ public class Deb extends Task
         dataTar.setTaskName (getTaskName ());
         dataTar.setDestFile (dataFile);
         dataTar.setCompression (GZIP_COMPRESSION_METHOD);
-        Iterator filesets = _data.iterator();
-        while (filesets.hasNext())
-            dataTar.add ((TarFileSet) filesets.next());
+
+        // add folders
+        for (Iterator dataFoldersIter = _dataFolders.iterator (); dataFoldersIter.hasNext ();)
+        {
+            String targetFolder = (String) dataFoldersIter.next ();
+
+            TarFileSet targetFolderSet = dataTar.createTarFileSet ();
+
+            targetFolderSet.setFile (_tempFolder);
+            targetFolderSet.setFullpath (targetFolder);
+        }
+
+        // add actual data
+        for (int i = 0; i < _data.size (); i++)
+            dataTar.add ((TarFileSet) _data.get (i));
 
         dataTar.execute ();
 
@@ -500,66 +514,143 @@ public class Deb extends Task
         return new File (tempFolderName);
     }
 
-    private long getInstalledSize()
-    {
-        long total = 0;
-
-        Iterator filesets = _data.iterator();
-        while (filesets.hasNext())
-        {
-            TarFileSet fileset = (TarFileSet) filesets.next();
-            
-            Iterator resouces = fileset.iterator ();
-            while (resouces.hasNext ())
-            {
-                FileResource resource = (FileResource) resouces.next ();
-                File file = resource.getFile ();
-                
-                total += file.length ();
-            }
-        }
-
-        return total;
-    }
-
     private void scanData()
     {
-        Iterator filesets = _data.iterator();
-        while (filesets.hasNext())
+        try
         {
-            TarFileSet fileset = (TarFileSet) filesets.next();
+            Set existingDirs = new HashSet ();
 
-            String fullPath = fileset.getFullpath (getProject ());
-            String prefix = fileset.getPrefix (getProject ());
+            _installedSize = 0;
+            PrintStream md5sums = new PrintStream (new FileOutputStream (new File (_tempFolder, "md5sums")));
+            _dataFolders = new TreeSet ();
 
-            if (!prefix.endsWith ("/"))
-                prefix += '/';
-
-            Iterator resouces = fileset.iterator ();
-            while (resouces.hasNext ())
+            Iterator filesets = _data.iterator();
+            while (filesets.hasNext())
             {
-                FileResource resource = (FileResource) resouces.next ();
-                String targetName;
+                TarFileSet fileset = (TarFileSet) filesets.next();
 
-                if (fullPath.length () > 0)
-                    targetName = fullPath;
-                else
-                    targetName = prefix + resource.getName ();
+                String fullPath = fileset.getFullpath (getProject ());
+                String prefix = fileset.getPrefix (getProject ());
 
-                if (resource.isDirectory ())
+                if (prefix.length () > 0 && !prefix.endsWith ("/"))
+                    prefix += '/';
+
+                String [] fileNames = getFileNames(fileset);
+                for (int i = 0; i < fileNames.length; i++)
                 {
+                    String targetName;
+                    String fileName = fileNames[i];
 
-                }
-                else
-                {
-                    File file = resource.getFile ();
+                    File file = new File (fileset.getDir (getProject ()), fileName);
 
-                    // todo:
-                    // calculate installed size, just as in previous method, but save to instace var
-                    // calculate and collect md5 sums
-                    // get target folder names, and collect them (to be added to _data)
+                    if (fullPath.length () > 0)
+                        targetName = fullPath;
+                    else
+                        targetName = prefix + fileName;
+
+                    if (file.isDirectory ())
+                    {
+                        log ("existing dir: " + targetName, Project.MSG_DEBUG);
+                        existingDirs.add (targetName);
+                    }
+                    else
+                    {
+                        // calculate installed size in bytes
+                        _installedSize += file.length ();
+
+                        // calculate and collect md5 sums
+                        md5sums.print (getFileMd5 (file));
+                        md5sums.print (' ');
+                        md5sums.println (targetName.replace (File.separatorChar, '/'));
+
+                        // get target folder names, and collect them (to be added to _data)
+                        File targetFile = new File(targetName);
+                        File parentFolder = targetFile.getParentFile () ;
+                        while (parentFolder != null)
+                        {
+                            String parentFolderPath = parentFolder.getPath ();
+
+                            if (!existingDirs.contains (parentFolderPath) && !_dataFolders.contains (parentFolderPath))
+                            {
+                                log ("adding dir: " + parentFolderPath + " for " + targetName, Project.MSG_DEBUG);
+                                _dataFolders.add (parentFolderPath);
+                            }
+
+                            parentFolder = parentFolder.getParentFile ();
+                        }
+                    }
                 }
             }
+
+            for (Iterator iterator = existingDirs.iterator (); iterator.hasNext ();)
+            {
+                String existingDir = (String) iterator.next ();
+
+                if (_dataFolders.contains (existingDir))
+                {
+                    log ("removing existing dir " + existingDir, Project.MSG_DEBUG);
+                    _dataFolders.remove (existingDir);
+                }
+            }
+
+            md5sums.close ();
+        }
+        catch (Exception e)
+        {
+            throw new BuildException (e);
+        }
+    }
+
+    private String[] getFileNames(FileSet fs)
+    {
+        DirectoryScanner ds = fs.getDirectoryScanner(fs.getProject());
+
+        String[] directories = ds.getIncludedDirectories();
+        String[] filesPerSe = ds.getIncludedFiles();
+
+        String[] files = new String [directories.length + filesPerSe.length];
+
+        System.arraycopy(directories, 0, files, 0, directories.length);
+        System.arraycopy(filesPerSe, 0, files, directories.length, filesPerSe.length);
+
+        return files;
+    }
+
+    private String getFileMd5(File file)
+    {
+        try
+        {
+            MessageDigest md5 = MessageDigest.getInstance ("MD5");
+            FileInputStream inputStream = new FileInputStream (file);
+            byte[] buffer = new byte[1024];
+
+            while (true)
+            {
+                int read = inputStream.read (buffer);
+
+                if (read == -1)
+                    break;
+
+                md5.update (buffer, 0, read);
+            }
+
+            byte[] md5Bytes = md5.digest ();
+            StringBuffer md5Buffer = new StringBuffer (md5Bytes.length * 2);
+            for (int i = 0; i < md5Bytes.length; i++)
+            {
+                String hex = Integer.toHexString (md5Bytes[i] & 0x00ff);
+
+                if (hex.length () == 1)
+                    md5Buffer.append ('0');
+
+                md5Buffer.append (hex);
+            }
+
+            return md5Buffer.toString ();
+        }
+        catch (Exception e)
+        {
+            throw new BuildException(e);
         }
     }
 }
