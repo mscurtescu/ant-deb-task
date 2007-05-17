@@ -229,6 +229,8 @@ public class Deb extends Task
     private File _postinst;
     private File _prerm;
     private File _postrm;
+    private File _config;
+    private File _templates;
 
     private File _tempFolder;
 
@@ -328,6 +330,16 @@ public class Deb extends Task
     public void setPostrm (File postrm)
     {
         _postrm = postrm;
+    }
+
+    public void setConfig (File config)
+    {
+        _config = config;
+    }
+
+    public void setTemplates (File templates)
+    {
+        _templates = templates;
     }
 
     public void addConfFiles (TarFileSet conffiles)
@@ -470,6 +482,12 @@ public class Deb extends Task
         if (_postrm != null)
             addFileToTar (controlTar, _postrm, "postrm");
 
+        if (_config != null)
+            addFileToTar (controlTar, _config, "config");
+
+        if (_templates != null)
+            addFileToTar (controlTar, _templates, "templates");
+        
         controlTar.perform ();
 
         controlFile.delete ();
