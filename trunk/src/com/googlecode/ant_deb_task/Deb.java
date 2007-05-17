@@ -222,7 +222,13 @@ public class Deb extends Task
     private Deb.Maintainer _maintainerObj;
     private Deb.Description _description;
 
+    private Set _conffiles = new HashSet ();
     private List _data = new ArrayList();
+
+    private File _preinst;
+    private File _postinst;
+    private File _prerm;
+    private File _postrm;
 
     private File _tempFolder;
 
@@ -302,6 +308,32 @@ public class Deb extends Task
     public void setMaintainer (String maintainer)
     {
         _maintainer = maintainer;
+    }
+
+    public void setPreinst (File preinst)
+    {
+        _preinst = preinst;
+    }
+
+    public void setPostinst (File postinst)
+    {
+        _postinst = postinst;
+    }
+
+    public void setPrerm (File prerm)
+    {
+        _prerm = prerm;
+    }
+
+    public void setPostrm (File postrm)
+    {
+        _postrm = postrm;
+    }
+
+    public void addConfFiles (TarFileSet conffiles)
+    {
+        _conffiles.add (conffiles);
+        _data.add (conffiles);
     }
 
     public void addDescription (Deb.Description description)
@@ -410,6 +442,7 @@ public class Deb extends Task
         writeControlFile (controlFile, _installedSize);
 
         File md5sumsFile = new File (_tempFolder, "md5sums");
+        File conffilesFile = new File (_tempFolder, "conffiles");
 
         File masterControlFile = new File (_tempFolder, "control.tar.gz");
 
@@ -421,6 +454,21 @@ public class Deb extends Task
 
         addFileToTar (controlTar, controlFile, "control");
         addFileToTar (controlTar, md5sumsFile, "md5sums");
+
+        if (conffilesFile.length () > 0)
+            addFileToTar (controlTar, conffilesFile, "conffiles");
+
+        if (_preinst != null)
+            addFileToTar (controlTar, _preinst, "preinst");
+
+        if (_postinst != null)
+            addFileToTar (controlTar, _postinst, "postinst");
+
+        if (_prerm != null)
+            addFileToTar (controlTar, _prerm, "prerm");
+
+        if (_postrm != null)
+            addFileToTar (controlTar, _postrm, "postrm");
 
         controlTar.perform ();
 
@@ -522,6 +570,7 @@ public class Deb extends Task
 
             _installedSize = 0;
             PrintStream md5sums = new PrintStream (new FileOutputStream (new File (_tempFolder, "md5sums")));
+            PrintStream conffiles = new PrintStream (new FileOutputStream (new File (_tempFolder, "conffiles")));
             _dataFolders = new TreeSet ();
 
             Iterator filesets = _data.iterator();
@@ -578,6 +627,10 @@ public class Deb extends Task
 
                             parentFolder = parentFolder.getParentFile ();
                         }
+
+                        // write conffiles
+                        if (_conffiles.contains (fileset))
+                            conffiles.println (targetName);
                     }
                 }
             }
@@ -594,6 +647,7 @@ public class Deb extends Task
             }
 
             md5sums.close ();
+            conffiles.close ();
         }
         catch (Exception e)
         {
