@@ -132,6 +132,14 @@ public class DesktopEntry extends Task
         }
     }
 
+    public static class OnlyShowIn extends EnumeratedAttribute
+    {
+        public String[] getValues ()
+        {
+            return new String[] {"GNOME", "KDE", "ROX", "XFCE", "Old"};
+        }
+    }
+
     public void setToFile(File toFile)
     {
         _toFile = toFile;
@@ -167,14 +175,20 @@ public class DesktopEntry extends Task
         _entries.put("Icon", icon);
     }
 
-    public void setOnlyShowIn(String onlyShowIn)
+    public void setOnlyShowIn(DesktopEntry.OnlyShowIn onlyShowIn)
     {
-        _entries.put("OnlyShowIn", onlyShowIn);
+        if (_entries.containsKey ("NotShowIn"))
+            throw new BuildException("Only one of either OnlyShowIn or NotShowIn can be set!");
+
+        _entries.put("OnlyShowIn", onlyShowIn.getValue ());
     }
 
-    public void setNotShowIn(String notShowIn)
+    public void setNotShowIn(DesktopEntry.OnlyShowIn notShowIn)
     {
-        _entries.put("NotShowIn", notShowIn);
+        if (_entries.containsKey ("OnlyShowIn"))
+            throw new BuildException("Only one of either OnlyShowIn or NotShowIn can be set!");
+
+        _entries.put("NotShowIn", notShowIn.getValue ());
     }
 
     public void setTryExec(String tryExec)
