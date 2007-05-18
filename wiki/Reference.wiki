@@ -1,0 +1,20 @@
+#summary Reference documentation
+
+= Introduction =
+
+Pointers to reference documentation.
+
+
+= Desktop Entry Specification =
+  * Using version 1.0
+  * http://standards.freedesktop.org/desktop-entry-spec/1.0/
+
+List of valid entries:
+  * http://standards.freedesktop.org/desktop-entry-spec/1.0/ar01s05.html
+
+= Desktop Menu Specification =
+  * Using version 1.0
+  * http://standards.freedesktop.org/menu-spec/menu-spec-1.0.html
+
+List of valid categories:
+  * http://standards.freedesktop.org/menu-spec/menu-spec-1.0.html#category-registry
