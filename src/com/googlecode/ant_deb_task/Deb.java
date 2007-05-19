@@ -372,7 +372,7 @@ public class Deb extends Task
     {
         log ("Generating control file to: " + controlFile.getAbsolutePath (), Project.MSG_VERBOSE);
 
-        PrintWriter control = new PrintWriter (controlFile);
+        PrintWriter control = new UnixPrintWriter (controlFile);
 
         control.print ("Package: ");
         control.println (_package);
@@ -587,8 +587,8 @@ public class Deb extends Task
             Set existingDirs = new HashSet ();
 
             _installedSize = 0;
-            PrintStream md5sums = new PrintStream (new FileOutputStream (new File (_tempFolder, "md5sums")));
-            PrintStream conffiles = new PrintStream (new FileOutputStream (new File (_tempFolder, "conffiles")));
+            PrintWriter md5sums = new UnixPrintWriter (new File (_tempFolder, "md5sums"));
+            PrintWriter conffiles = new UnixPrintWriter (new File (_tempFolder, "conffiles"));
             _dataFolders = new TreeSet ();
 
             Iterator filesets = _data.iterator();

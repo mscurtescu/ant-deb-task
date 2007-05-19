@@ -16,14 +16,15 @@ public class BuildDeb
     public static void buildDeb(File debFile, File controlFile, File dataFile) throws IOException
     {
         long now = new Date().getTime() / 1000;
-        PrintStream deb = new PrintStream(debFile);
+        OutputStream deb = new FileOutputStream (debFile);
         
-        deb.print("!<arch>\n");
-        deb.print(MessageFormat.format(FILE_HEADER_FORMAT, new Object[]{padd(DEBIAN_BINARY_NAME, 16), padd(now, 12), padd(DEBIAN_BINARY_CONTENT.length(), 10)}));
-        deb.print(DEBIAN_BINARY_CONTENT);
-        if (DEBIAN_BINARY_CONTENT.length() % 2 == 1)
-            deb.print('\n');
-        deb.print(MessageFormat.format(FILE_HEADER_FORMAT, new Object[]{padd(CONTROL_NAME, 16), padd(now, 12), padd(controlFile.length(), 10)}));
+        deb.write("!<arch>\n".getBytes ());
+
+        startFileEntry (deb, DEBIAN_BINARY_NAME, now, DEBIAN_BINARY_CONTENT.length());
+        deb.write(DEBIAN_BINARY_CONTENT.getBytes ());
+        endFileEntry (deb, DEBIAN_BINARY_CONTENT.length());
+
+        startFileEntry (deb, CONTROL_NAME, now, controlFile.length());
 
         FileInputStream control = new FileInputStream(controlFile);
         byte[] buffer = new byte[1024];
@@ -35,10 +36,10 @@ public class BuildDeb
             deb.write(buffer, 0, read);
         }
         control.close();
-        if (controlFile.length() % 2 == 1)
-            deb.print('\n');
-        
-        deb.print(MessageFormat.format(FILE_HEADER_FORMAT, new Object[]{padd(DATA_NAME, 16), padd(now, 12), padd(dataFile.length(), 10)}));
+
+        endFileEntry (deb, controlFile.length());
+
+        startFileEntry (deb, DATA_NAME, now, dataFile.length());
 
         FileInputStream data = new FileInputStream(dataFile);
         while(true)
@@ -49,10 +50,30 @@ public class BuildDeb
             deb.write(buffer, 0, read);
         }
         data.close();
-        if (dataFile.length() % 2 == 1)
-            deb.print('\n');
+
+        endFileEntry (deb, dataFile.length());
 
         deb.close();
+    }
+
+    private static void startFileEntry(OutputStream deb, String name, long time, long length) throws IOException
+    {
+        String fileHeader = MessageFormat.format (
+                FILE_HEADER_FORMAT,
+                new Object[]{
+                        padd (name, 16),
+                        padd (time, 12),
+                        padd (length, 10)
+                }
+        );
+
+        deb.write(fileHeader.getBytes ());
+    }
+
+    private static void endFileEntry(OutputStream deb, long length) throws IOException
+    {
+        if (length % 2 == 1)
+            deb.write("\n".getBytes ());
     }
 
     private static String padd(long number, int length)
