@@ -268,7 +268,7 @@ public class DesktopEntry extends Task
                 _entries.put (localizedEntry.toString (), localizedEntry.getValue ());
             }
 
-            PrintWriter out = new PrintWriter(_toFile);
+            PrintWriter out = new UnixPrintWriter(_toFile);
 
             out.println("[Desktop Entry]");
 
