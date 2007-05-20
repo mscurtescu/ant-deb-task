@@ -464,29 +464,29 @@ public class Deb extends Task
         controlTar.setDestFile (masterControlFile);
         controlTar.setCompression (GZIP_COMPRESSION_METHOD);
 
-        addFileToTar (controlTar, controlFile, "control");
-        addFileToTar (controlTar, md5sumsFile, "md5sums");
+        addFileToTar (controlTar, controlFile, "control", "644");
+        addFileToTar (controlTar, md5sumsFile, "md5sums", "644");
 
         if (conffilesFile.length () > 0)
-            addFileToTar (controlTar, conffilesFile, "conffiles");
+            addFileToTar (controlTar, conffilesFile, "conffiles", "644");
 
         if (_preinst != null)
-            addFileToTar (controlTar, _preinst, "preinst");
+            addFileToTar (controlTar, _preinst, "preinst", "755");
 
         if (_postinst != null)
-            addFileToTar (controlTar, _postinst, "postinst");
+            addFileToTar (controlTar, _postinst, "postinst", "755");
 
         if (_prerm != null)
-            addFileToTar (controlTar, _prerm, "prerm");
+            addFileToTar (controlTar, _prerm, "prerm", "755");
 
         if (_postrm != null)
-            addFileToTar (controlTar, _postrm, "postrm");
+            addFileToTar (controlTar, _postrm, "postrm", "755");
 
         if (_config != null)
-            addFileToTar (controlTar, _config, "config");
+            addFileToTar (controlTar, _config, "config", "644");
 
         if (_templates != null)
-            addFileToTar (controlTar, _templates, "templates");
+            addFileToTar (controlTar, _templates, "templates", "644");
         
         controlTar.perform ();
 
@@ -495,12 +495,14 @@ public class Deb extends Task
         return masterControlFile;
     }
 
-    private void addFileToTar(Tar tar, File file, String fullpath)
+    private void addFileToTar(Tar tar, File file, String fullpath, String fileMode)
     {
         TarFileSet controlFileSet = tar.createTarFileSet ();
 
         controlFileSet.setFile (file);
         controlFileSet.setFullpath (fullpath);
+
+        controlFileSet.setFileMode (fileMode);
     }
 
     public void execute () throws BuildException
