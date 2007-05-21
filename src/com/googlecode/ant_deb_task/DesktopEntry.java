@@ -8,6 +8,9 @@ import java.util.*;
 
 public class DesktopEntry extends Task
 {
+    private Properties _categories = new Properties ();
+    private Properties _keys = new Properties ();
+
     private File _toFile;
 
     private Map _entries;
@@ -218,12 +221,14 @@ public class DesktopEntry extends Task
 
     public void setCategories(String categories)
     {
+        validateCategories (categories);
+
         _entries.put("Categories", categories);
     }
 
     public void setUrl(String url)
     {
-        _entries.put("Url", url);
+        _entries.put("URL", url);
     }
 
     public void addName(DesktopEntry.Name name)
@@ -253,6 +258,21 @@ public class DesktopEntry extends Task
         _entries.put("Version", "1.0");
         _entries.put("Type", "Application");
         _entries.put("Terminal", "false");
+
+        try
+        {
+            InputStream categoriesStream = getClass ().getResourceAsStream ("DesktopEntryCategories.properties");
+            _categories.load (categoriesStream);
+            log ("Loaded " + _categories.size () + " properties from DesktopEntryCategories", Project.MSG_VERBOSE);
+
+            InputStream keysStream = getClass ().getResourceAsStream ("DesktopEntryKeys.properties");
+            _keys.load (keysStream);
+            log ("Loaded " + _keys.size () + " properties from DesktopEntryKeys", Project.MSG_VERBOSE);
+        }
+        catch (Exception e)
+        {
+            throw new BuildException("Cannot load properties file!", e);
+        }
     }
 
     public void execute() throws BuildException
@@ -268,6 +288,8 @@ public class DesktopEntry extends Task
                 _entries.put (localizedEntry.toString (), localizedEntry.getValue ());
             }
 
+            validateKeys ();
+            
             PrintWriter out = new UnixPrintWriter(_toFile);
 
             out.println("[Desktop Entry]");
@@ -288,6 +310,140 @@ public class DesktopEntry extends Task
         catch (FileNotFoundException e)
         {
             throw new BuildException(e);
+        }
+    }
+
+    private void validateCategories(String categories)
+    {
+        int mainCnt = 0;
+
+        Set categorySet = new HashSet (Arrays.asList (categories.split (";")));
+        for (Iterator iterator = categorySet.iterator (); iterator.hasNext ();)
+        {
+            String category = (String) iterator.next ();
+
+            String type = _categories.getProperty ("category." + category);
+
+            if (type == null)
+                throw new BuildException("Unknown category: " + category);
+
+            if ("main".equals (type))
+                mainCnt++;
+
+            String require = _categories.getProperty ("category." + category + ".require");
+            if (require != null)
+            {
+                if (!categorySet.contains (require))
+                    throw new BuildException("Category " + category + " also requires " + require);
+            }
+            else
+            {
+                require = _categories.getProperty ("category." + category + ".require.and");
+
+                if (require != null)
+                {
+                    String [] requireAnd = require.split (";");
+                    for (int j = 0; j < requireAnd.length; j++)
+                    {
+                        if (!categorySet.contains (requireAnd[j]))
+                            throw new BuildException("Category " + category + " also requires " + requireAnd[j]);
+                    }
+                }
+                else
+                {
+                    require = _categories.getProperty ("category." + category + ".require.or");
+
+                    if (require != null)
+                    {
+                        boolean found = false;
+                        String [] requireOr = require.split (";");
+                        for (int j = 0; j < requireOr.length; j++)
+                        {
+                            if (categorySet.contains (requireOr[j]))
+                            {
+                                found = true;
+                                break;
+                            }
+                        }
+
+                        if (!found)
+                            throw new BuildException("Category " + category + " also requires one of " + require);
+                    }
+                }
+            }
+        }
+
+        if (mainCnt == 0)
+            throw new BuildException ("At least one main category should be specified!");
+
+        if (mainCnt > 1)
+            log ("Multiple main categories specified, the entry may appear under multiple menus!");
+    }
+
+    private void validateKeys()
+    {
+        String type = (String) _entries.get ("Type");
+        Iterator keys = _entries.keySet ().iterator ();
+        while (keys.hasNext ())
+        {
+            String key = (String) keys.next ();
+
+            if ("Type".equals (key))
+                continue;
+            
+            int idxSquare = key.indexOf ('[');
+
+            if (idxSquare != -1)
+            {
+                String baseKey = key.substring (0, idxSquare);
+
+                if (!_entries.containsKey (baseKey))
+                    throw new BuildException ("Unlocalized key " + baseKey + " also needed for " + key);
+
+                continue;
+            }
+
+            boolean found = false;
+            String [] typeArr = _keys.getProperty ("key." + key).split (",");
+            for (int i = 0; i < typeArr.length; i++)
+            {
+                String allowedType = typeArr[i];
+
+                if (type.equals (allowedType))
+                {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found)
+                throw new BuildException("Key " + key + " not allowed for desktop entry of type " + type);
+        }
+
+        Iterator propertyKeys = _keys.keySet ().iterator ();
+        while (propertyKeys.hasNext ())
+        {
+            String property = (String) propertyKeys.next ();
+
+            if (property.endsWith (".required"))
+            {
+                String [] requiredTypeArr = _keys.getProperty (property).split (",");
+
+                for (int i = 0; i < requiredTypeArr.length; i++)
+                {
+                    String requiredType = requiredTypeArr[i];
+
+                    if (type.equals (requiredType))
+                    {
+                        String key = property.substring (4, property.length () - 9);
+
+                        if (!_entries.containsKey (key))
+                            throw new BuildException("Key " + key + " is required for desktop entries of type " + type);
+
+                        break;
+                    }
+                }
+            }
         }
     }
 }

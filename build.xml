@@ -10,7 +10,14 @@
         <javac
             srcdir="src"
             destdir="build/classes"
-            classpathref="classpath"/>
+            classpathref="classpath"
+            target="1.4"
+            source="1.4"
+            debug="yes"
+        />
+        <copy todir="build/classes">
+            <fileset dir="src" includes="**/*.properties"/>
+        </copy>
     </target>
 
     <target name="jar" depends="compile" description="Package compiled classes into a jar">
@@ -33,10 +40,12 @@
         <mkdir dir="build/test"/>
         <desktopEntry
             toFile="build/test/Test.desktop"
-            name="Some Name">
+            name="Some Name"
+            exec="/usr/bin/test"
+            categories="Office;Database">
             <name lang="ro" value="Un nume"/>
             <name lang="hu" country="hu" value="Edgy nev"/>
-            <genericName value="The Generic Name"/>
+            <genericname value="The Generic Name"/>
         </desktopEntry>
     </target>
 
