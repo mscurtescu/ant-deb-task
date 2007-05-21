@@ -16,6 +16,8 @@ public class DesktopEntry extends Task
     private Map _entries;
     private List _localizedEntries = new ArrayList ();
 
+    private static final Set VALID_ONLY_SHOW_IN = new HashSet (Arrays.asList (new String[] {"GNOME", "KDE", "ROX", "XFCE", "Old"}));
+
     public static class LocalizedEntry
     {
         private String _key;
@@ -135,14 +137,6 @@ public class DesktopEntry extends Task
         }
     }
 
-    public static class OnlyShowIn extends EnumeratedAttribute
-    {
-        public String[] getValues ()
-        {
-            return new String[] {"GNOME", "KDE", "ROX", "XFCE", "Old"};
-        }
-    }
-
     public void setToFile(File toFile)
     {
         _toFile = toFile;
@@ -178,20 +172,38 @@ public class DesktopEntry extends Task
         _entries.put("Icon", icon);
     }
 
-    public void setOnlyShowIn(DesktopEntry.OnlyShowIn onlyShowIn)
+    public void setOnlyShowIn(String onlyShowIn)
     {
         if (_entries.containsKey ("NotShowIn"))
             throw new BuildException("Only one of either OnlyShowIn or NotShowIn can be set!");
 
-        _entries.put("OnlyShowIn", onlyShowIn.getValue ());
+        String [] categories = onlyShowIn.split (";");
+        for (int i = 0; i < categories.length; i++)
+        {
+            String category = categories[i];
+
+            if (!VALID_ONLY_SHOW_IN.contains (category))
+                throw new BuildException(category + " is not a valid OnlyShowIn category!");
+        }
+
+        _entries.put("OnlyShowIn", onlyShowIn);
     }
 
-    public void setNotShowIn(DesktopEntry.OnlyShowIn notShowIn)
+    public void setNotShowIn(String notShowIn)
     {
         if (_entries.containsKey ("OnlyShowIn"))
             throw new BuildException("Only one of either OnlyShowIn or NotShowIn can be set!");
 
-        _entries.put("NotShowIn", notShowIn.getValue ());
+        String [] categories = notShowIn.split (";");
+        for (int i = 0; i < categories.length; i++)
+        {
+            String category = categories[i];
+
+            if (!VALID_ONLY_SHOW_IN.contains (category))
+                throw new BuildException(category + " is not a valid NotShowIn category!");
+        }
+
+        _entries.put("NotShowIn", notShowIn);
     }
 
     public void setTryExec(String tryExec)
