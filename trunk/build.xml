@@ -42,7 +42,9 @@
             toFile="build/test/Test.desktop"
             name="Some Name"
             exec="/usr/bin/test"
-            categories="Office;Database">
+            categories="Office;Database"
+            onlyshowin="GNOME;KDE"
+        >
             <name lang="ro" value="Un nume"/>
             <name lang="hu" country="hu" value="Edgy nev"/>
             <genericname value="The Generic Name"/>
