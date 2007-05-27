@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Name=SmartCVS
+Comment=The Smart CVS-Client @version@ by SyntEvo
+Exec=/usr/share/@package.name@/bin/smartcvs.sh
+Path=/usr/share/@package.name@/bin/
+Icon=/usr/share/@package.name@/bin/smartcvs-32x32.png
+Terminal=false
+Type=Application
+Categories=Application;Development;RevisionControl;Java

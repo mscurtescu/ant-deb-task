@@ -1,0 +1,68 @@
+<project name="Java application deb packager" default="dist">
+
+    <property file="project.properties"/>
+
+    <path id="classpath">
+        <fileset dir="../../dist" includes="*.jar"/>
+    </path>
+
+    <taskdef name="deb" classname="com.googlecode.ant_deb_task.Deb" classpathref="classpath"/>
+    <taskdef name="desktopEntry" classname="com.googlecode.ant_deb_task.DesktopEntry" classpathref="classpath"/>
+
+    <target name="untar">
+        <mkdir dir="build"/>
+        <untar src="download/${download.name}" dest="build" compression="gzip"/>
+    </target>
+    
+    <target name="create-desktop-entry">
+        <mkdir dir="build"/>
+        <desktopEntry
+            toFile="build/FreeCol.desktop"
+            name="FreeCol"
+            comment="A Civilization-like game."
+            exec="/usr/bin/freecol"
+            icon="/usr/share/${package.name}/freecol.xpm"
+            categories="Game;StrategyGame;Java"
+        />
+    </target>
+    
+    <target name="dist" depends="untar, create-desktop-entry" description="build the deb file">
+        <mkdir dir="dist"/>
+        <deb
+            todir="dist"
+            package="${package.name}"
+            section="games"
+            depends="sun-java5-jre | sun-java6-jre"
+        >
+            <version upstream="${version}"/>
+            <maintainer email="Marius Scurtescu" name="marius.scurtescu@gmail.com"/>
+            <description synopsis="A Civilization-like game in which the player has to conquer the new world.">
+The FreeCol team aims to create an Open Source version of Colonization (released under the GPL). At first we'll try to make an exact clone of Colonization. The visuals will be brought up to date with more recent standards but will remain clean, simple and functional. Certain new 'features' will be implemented but the gameplay and the rules will be exactly the same as the original game. Examples of modern features are: an isometric map and multiplayer support.
+This clone will be developed incrementally and result in FreeCol 1.0.0 which will be an almost exact Colonization clone. Incremental development basically means that we'll add features one at a time. This allows us to have a running program at all times and also to release an unfinished but working game once in a while.
+
+Once FreeCol 1.0.0 is finished we'll start working towards FreeCol 2.0.0. FreeCol 2 will go beyond the original Colonization and will have many new features, it will be an implementation of our (and our users') image of what Colonization 2 would have been.
+
+http://www.freecol.org/
+            </description>
+            <tarfileset dir="build/${untar.name}" prefix="usr/share/${package.name}">
+                <include name="data/**"/>
+                <include name="jars/**"/>
+                <include name="FreeCol.jar"/>
+                <include name="freecol.xpm"/>
+            </tarfileset>
+            <tarfileset file="local/freecol" prefix="usr/bin" filemode="755"/>
+            <tarfileset dir="build/${untar.name}" prefix="usr/share/doc/${package.name}">
+                <include name="COPYING"/>
+                <include name="README"/>
+                <include name="FreeCol.pdf"/>
+            </tarfileset>
+            <tarfileset file="build/FreeCol.desktop" prefix="usr/share/applications"/>
+        </deb>
+    </target>
+
+    <target name="clean" description="remove all work folders">
+        <delete dir="build"/>
+        <delete dir="dist"/>
+    </target>
+
+</project>
