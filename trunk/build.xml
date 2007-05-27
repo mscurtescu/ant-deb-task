@@ -20,7 +20,37 @@
         </copy>
     </target>
 
-    <target name="jar" depends="compile" description="Package compiled classes into a jar">
+    <target name="antDoc" depends="compile" description="Generate Ant documentation">
+        <taskdef name="antTaskListProperties" classname="net.sf.fikin.ant.DocletAntPropertiesTask" classpath="lib/fikin-ant-1.7.3.jar"/>
+        <taskdef name="antTaskListXml" classname="net.sf.fikin.ant.DocletAntlibTask" classpath="lib/fikin-ant-1.7.3.jar"/>
+        <taskdef name="antTasksDocHtml" classname="net.sf.fikin.ant.AntTasksDocHtmlDocletTask" classpath="lib/fikin-ant-1.7.3.jar"/>
+        <taskdef name="antTasksDocText" classname="net.sf.fikin.ant.AntTasksDocTextDocletTask" classpath="lib/fikin-ant-1.7.3.jar"/>
+        <tstamp />
+
+        <mkdir dir="build/doc"/>
+
+        <antTaskListProperties file="build/classes/ant.properties" classpathref="classpath" failonerror="yes">
+            <packageset dir="src" defaultexcludes="yes"/>
+        </antTaskListProperties>
+        <antTaskListXml file="build/classes/antlib.xml" classpathref="classpath" failonerror="yes">
+            <packageset dir="src" defaultexcludes="yes"/>
+        </antTaskListXml>
+        
+        <antTasksDocHtml file="build/doc/ant-deb-tasks.html" classpathref="classpath" failonerror="yes">
+            <packageset dir="src" defaultexcludes="yes"/>
+            <param name="-J-DDSTAMP=${DSTAMP}" />
+            <param name="-J-DTSTAMP=${TSTAMP}" />
+            <param name="-J-Dheader=Ant Deb Tasks"/>
+        </antTasksDocHtml>
+        <antTasksDocText file="build/doc/ant-deb-tasks.txt" classpathref="classpath" failonerror="yes">
+            <packageset dir="src"    defaultexcludes="yes"/>
+            <param name="-J-DDSTAMP=${DSTAMP}" />
+            <param name="-J-DTSTAMP=${TSTAMP}" />
+            <param name="-J-Dheader=Ant Deb Tasks"/>
+        </antTasksDocText>
+    </target>
+
+    <target name="jar" depends="compile,antDoc" description="Package compiled classes into a jar">
         <jar
             basedir="build/classes"
             destfile="build/ant-deb.jar"/>

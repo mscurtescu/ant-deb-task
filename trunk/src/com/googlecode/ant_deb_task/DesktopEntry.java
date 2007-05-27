@@ -6,6 +6,11 @@ import org.apache.tools.ant.types.EnumeratedAttribute;
 import java.io.*;
 import java.util.*;
 
+/**
+ * Task that generates a desktop entry file used to add menu entries.
+ * 
+ * @antTaskName desktopentry
+ */
 public class DesktopEntry extends Task
 {
     private Properties _categories = new Properties ();
@@ -137,6 +142,12 @@ public class DesktopEntry extends Task
         }
     }
 
+    /**
+     * The file where the desktop entry will be generated. The file name extension should be .desktop.
+     *
+     * @param toFile The file name, if exisits it will be overwritten.
+     * @antTaskParamRequired true
+     */
     public void setToFile(File toFile)
     {
         _toFile = toFile;
