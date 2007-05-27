@@ -9,6 +9,11 @@ import java.util.*;
 import java.util.regex.*;
 import java.security.MessageDigest;
 
+/**
+ * Task that creates a Debian package.
+ *
+ * @antTaskName deb
+ */
 public class Deb extends Task
 {
     private static final Pattern PACKAGE_NAME_PATTERN = Pattern.compile("[a-z0-9][a-z0-9+\\-.]+");
@@ -30,7 +35,7 @@ public class Deb extends Task
 
         public void addText (String text)
         {
-            _extended += text;
+            _extended += getProject ().replaceProperties (text);
         }
 
         public String getExtended ()
