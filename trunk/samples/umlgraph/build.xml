@@ -1,0 +1,53 @@
+<project name="Java application deb packager" default="dist">
+
+    <property file="project.properties"/>
+
+    <path id="classpath">
+        <fileset dir="../dist" includes="*.jar"/>
+    </path>
+
+    <taskdef name="deb" classname="com.googlecode.ant_deb_task.Deb" classpathref="classpath"/>
+
+    <target name="untar" description="untar downloaded package">
+        <mkdir dir="build"/>
+        <untar src="download/${download.name}" dest="build" compression="gzip"/>
+    </target>
+    
+    <target name="dist" depends="untar" description="build the deb file">
+        <mkdir dir="dist"/>
+        <copy file="build/UMLGraph-${version}/bin/umlgraph" todir="build">
+            <filterset begintoken=" " endtoken=" ">
+                <filter token="lib/UmlGraph.jar" value=" /usr/share/${package.name}/lib/UmlGraph.jar "/>
+            </filterset>
+        </copy>
+        <deb
+            todir="dist"
+            package="${package.name}"
+            section="devel"
+            depends="${depends}"
+        >
+            <version upstream="${version}"/>
+            <maintainer email="root@example.com"/>
+            <description synopsis="Declarative Drawing of UML Diagrams">
+UMLGraph allows the declarative specification and drawing of UML class and sequence diagrams. The current features are part of an ongoing effort aiming to provide support for all types UML diagrams.
+
+http://www.spinellis.gr/sw/umlgraph/
+            </description>
+            <tarfileset file="build/umlgraph" prefix="usr/bin" filemode="755"/>
+            <tarfileset dir="build/UMLGraph-${version}" prefix="usr/share/${package.name}">
+                <include name="lib/*"/>
+            </tarfileset>
+            <tarfileset dir="build/UMLGraph-${version}" prefix="usr/share/doc/${package.name}">
+                <include name="doc/**"/>
+                <include name="LICENSE"/>
+                <include name="README.txt"/>
+            </tarfileset>
+        </deb>
+    </target>
+    
+    <target name="clean" description="remove all work folders">
+        <delete dir="build"/>
+        <delete dir="dist"/>
+    </target>
+
+</project>

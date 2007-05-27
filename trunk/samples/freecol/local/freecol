@@ -1,0 +1,9 @@
+#!/bin/bash
+
+FREECOL_HOME=/usr/share/freecol
+
+mkdir -p ~/.freecol/log
+cd ~/.freecol/log
+
+java -Xmx256M -jar $FREECOL_HOME/FreeCol.jar --freecol-data $FREECOL_HOME/data --windowed
+

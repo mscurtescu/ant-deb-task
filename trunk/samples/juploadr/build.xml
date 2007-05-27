@@ -1,0 +1,96 @@
+<project name="Java application deb packager" default="dist">
+
+    <property file="project.properties"/>
+
+    <path id="classpath">
+        <fileset dir="../../dist" includes="*.jar"/>
+    </path>
+
+    <taskdef name="deb" classname="com.googlecode.ant_deb_task.Deb" classpathref="classpath"/>
+    <taskdef name="desktopEntry" classname="com.googlecode.ant_deb_task.DesktopEntry" classpathref="classpath"/>
+
+    <target name="untar" description="untar downloaded packages">
+        <mkdir dir="build"/>
+        <untar src="download/${download.name.amd64}" dest="build" compression="gzip"/>
+        <untar src="download/${download.name.i386}" dest="build" compression="gzip"/>
+    </target>
+    
+    <target name="create-desktop-entry" description="create the .desktop file">
+        <mkdir dir="build"/>
+        <desktopEntry
+            toFile="build/jUploadr.desktop"
+            name="jUploadr"
+            comment="Upload photos to Flickr and Zooomr"
+            icon="/usr/share/${package.name}/juploadr_icon.png"
+            exec="/usr/share/${package.name}/jUploadr"
+            path="/usr/share/${package.name}"
+            categories="Graphics;Java;GTK"
+        />
+    </target>
+
+    <target name="dist-i386" depends="untar, create-desktop-entry" description="build the i386 deb file">
+        <mkdir dir="dist"/>
+        <deb
+            todir="dist"
+            package="${package.name}"
+            section="graphics"
+            architecture="i386"
+            depends="${depends}">
+            <version upstream="${version}"/>
+            <maintainer email="root@example.com"/>
+            <description synopsis="jUploadr: A photo uploader for Linux,Windows and Mac">
+jUploadr is a cross platform, cross-site Photo uploader. Currently it runs on Windows Linux and OS X and supports both Flickr and Zooomr. It allows you to set all properties of a photo before you upload it. It also supports batch editing, so you can make short work of uploading a bunch of files.
+            </description>
+            <tarfileset file="build/${untar.name.i386}/jUploadr" prefix="usr/share/${package.name}" filemode="755"/>
+            <tarfileset dir="build/${untar.name.i386}" prefix="usr/share/${package.name}">
+                <exclude name="jUploadr"/>
+                <exclude name="CHANGES"/>
+                <exclude name="README"/>
+                <exclude name="lib/juploadr-mac-libs.jar"/>
+            </tarfileset>
+            <tarfileset file="build/jUploadr.desktop" prefix="usr/share/applications"/>
+            <tarfileset dir="build/${untar.name.i386}" prefix="usr/share/doc/${package.name}">
+                <include name="CHANGES"/>
+                <include name="README"/>
+            </tarfileset>
+            <tarfileset file="local/COPYRIGHT" prefix="usr/share/doc/${package.name}"/>
+        </deb>
+    </target>
+
+    <target name="dist-amd64" depends="untar, create-desktop-entry" description="build the amd64 deb file">
+        <mkdir dir="dist"/>
+        <deb
+            todir="dist"
+            package="${package.name}"
+            section="graphics"
+            architecture="amd64"
+            depends="${depends}">
+            <version upstream="${version}"/>
+            <maintainer email="root@example.com"/>
+            <description synopsis="jUploadr: A photo uploader for Linux,Windows and Mac">
+jUploadr is a cross platform, cross-site Photo uploader. Currently it runs on Windows Linux and OS X and supports both Flickr and Zooomr. It allows you to set all properties of a photo before you upload it. It also supports batch editing, so you can make short work of uploading a bunch of files.
+            </description>
+            <tarfileset file="build/${untar.name.amd64}/jUploadr" prefix="usr/share/${package.name}" filemode="755"/>
+            <tarfileset dir="build/${untar.name.amd64}" prefix="usr/share/${package.name}">
+                <exclude name="jUploadr"/>
+                <exclude name="CHANGES"/>
+                <exclude name="README"/>
+                <exclude name="lib/juploadr-mac-libs.jar"/>
+            </tarfileset>
+            <tarfileset file="build/jUploadr.desktop" prefix="usr/share/applications"/>
+            <tarfileset dir="build/${untar.name.amd64}" prefix="usr/share/doc/${package.name}">
+                <include name="CHANGES"/>
+                <include name="README"/>
+            </tarfileset>
+            <tarfileset file="local/COPYRIGHT" prefix="usr/share/doc/${package.name}"/>
+        </deb>
+    </target>
+    
+    <target name="dist" depends="dist-i386, dist-amd64" description="build all the deb files"/>
+    
+    <target name="clean" description="remove all work folders">
+        <delete dir="build"/>
+        <delete dir="dist"/>
+    </target>
+
+</project>

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Name=SmartSVN
+Comment=The Smart Subversion-Client @version@ by SyntEvo
+Exec=/usr/share/@package.name@/bin/smartsvn.sh
+Path=/usr/share/@package.name@/bin/
+Icon=/usr/share/@package.name@/bin/icon32.png
+Terminal=false
+Type=Application
+Categories=Application;Development;RevisionControl;Java
