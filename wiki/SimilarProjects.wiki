@@ -1,3 +1,5 @@
+#summary Other projects implementing similar code
+
 = antlibs debian =
 
 * http://svn.apache.org/repos/asf/ant/sandbox/antlibs/debian/trunk/
