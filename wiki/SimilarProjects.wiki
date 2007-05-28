@@ -2,8 +2,10 @@
 
 = antlibs debian =
 
-* http://svn.apache.org/repos/asf/ant/sandbox/antlibs/debian/trunk/
+ * http://svn.apache.org/repos/asf/ant/sandbox/antlibs/debian/trunk/
 
 = jdeb =
 
-* http://vafer.org/projects/jdeb/
+ * http://vafer.org/projects/jdeb/
+ * http://vafer.org/blog/20070119230429
+
