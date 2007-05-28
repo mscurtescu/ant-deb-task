@@ -1,4 +1,4 @@
-Bug reports that affect these tasks.
+#summary Bug reports that affect these tasks.
 
 = Symlinks in Tars =
  * Add method to explicitly define symlinks in <tar> task
