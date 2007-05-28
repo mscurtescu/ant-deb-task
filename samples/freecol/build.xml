@@ -15,7 +15,7 @@
     
     <target name="create-desktop-entry">
         <mkdir dir="build"/>
-        <desktopEntry
+        <desktopentry
             toFile="build/FreeCol.desktop"
             name="FreeCol"
             comment="A Civilization-like game."

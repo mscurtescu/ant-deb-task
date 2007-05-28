@@ -16,7 +16,7 @@
     
     <target name="create-desktop-entry" description="create the .desktop file">
         <mkdir dir="build"/>
-        <desktopEntry
+        <desktopentry
             toFile="build/jUploadr.desktop"
             name="jUploadr"
             comment="Upload photos to Flickr and Zooomr"
