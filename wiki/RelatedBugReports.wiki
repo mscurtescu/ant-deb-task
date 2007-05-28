@@ -1,2 +1,5 @@
-= Add method to explicitly define symlinks in <tar> task = 
+Bug reports that affect these tasks.
+
+= Symlinks in Tars =
+* Add method to explicitly define symlinks in <tar> task
 * http://issues.apache.org/bugzilla/show_bug.cgi?id=40059
