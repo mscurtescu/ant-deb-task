@@ -6,7 +6,7 @@
         <fileset dir="../../dist" includes="*.jar"/>
     </path>
 
-    <taskdef resource="ant.properties" classpathref="classpath"/>
+    <taskdef resource="ant_deb_task.properties" classpathref="classpath"/>
 
     <target name="untar" description="untar downloaded packages">
         <mkdir dir="build"/>
