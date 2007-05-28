@@ -3,10 +3,10 @@
     <property file="project.properties"/>
 
     <path id="classpath">
-        <fileset dir="../dist" includes="*.jar"/>
+        <fileset dir="../../dist" includes="*.jar"/>
     </path>
 
-    <taskdef name="deb" classname="com.googlecode.ant_deb_task.Deb" classpathref="classpath"/>
+    <taskdef resource="ant_deb_task.properties" classpathref="classpath"/>
 
     <target name="untar" description="untar downloaded package">
         <mkdir dir="build"/>
