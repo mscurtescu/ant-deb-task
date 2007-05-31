@@ -1,11 +1,22 @@
 #summary Other projects implementing similar code
 
 = antlibs debian =
-
  * http://svn.apache.org/repos/asf/ant/sandbox/antlibs/debian/trunk/
 
-= jdeb =
 
+= jdeb =
  * http://vafer.org/projects/jdeb/
  * http://vafer.org/blog/20070119230429
 
+
+= Platform Specific Installers with Ant =
+
+ * http://stefan.samaflost.de/blog/en/Apache/Ant/ant_installers.html
+
+Blog post that talks about installer in general.
+
+
+= Installer Toolkit for Java Applications =
+ * http://sourceforge.net/projects/install-toolkit
+
+A toolkit that generates Windows Installer Packages (MSI) and Debian Packages (DEB).
