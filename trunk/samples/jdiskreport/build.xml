@@ -1,0 +1,73 @@
+<project name="Java application deb packager" default="dist">
+
+    <property file="project.properties"/>
+
+    <path id="classpath">
+        <fileset dir="../../dist" includes="*.jar"/>
+    </path>
+
+    <taskdef resource="ant_deb_task.properties" classpathref="classpath"/>
+
+    <target name="unzip">
+        <mkdir dir="build"/>
+        <unzip src="download/${download.name}" dest="build"/>
+        <unjar dest="build/${unzip.name}">
+            <fileset dir="build/${unzip.name}" includes="*.jar"/>
+            <patternset>
+                <include name="**/logo_16x16.gif"/>
+            </patternset>
+            <mapper type="flatten"/>
+        </unjar>
+    </target>
+    
+    <target name="create-desktop-entry">
+        <mkdir dir="build"/>
+        <desktopentry
+            toFile="build/JGoodies-JDiskReport.desktop"
+            name="JDiskReport"
+            comment="Graphical Disk Reports"
+            exec="java -jar /usr/share/${package.name}/${jar.name}"
+            path="/usr/share/${package.name}/"
+            icon="/usr/share/${package.name}/logo_16x16.gif"
+            categories="Utility;FileTools;Java"
+        />
+    </target>
+    
+    <target name="dist" depends="unzip, create-desktop-entry" description="build the deb file">
+        <mkdir dir="dist"/>
+        <deb
+            todir="dist"
+            package="${package.name}"
+            section="utils"
+            depends="sun-java5-jre | sun-java6-jre"
+            suggests="jpathreport"
+        >
+            <version upstream="${version}"/>
+            <maintainer email="Marius Scurtescu" name="marius.scurtescu@gmail.com"/>
+            <description synopsis="Graphical Disk Reports">
+JDiskReport enables you to understand how much space the files and directories consume on your disk drives, and it helps you find obsolete files and folders.
+
+The tool analyses your disk drives and collects several statistics which you can view as overview charts and details tables.
+
+This is ad-free uncrippled no-charge binary multi-platform software that never expires.
+
+http://www.jgoodies.com/freeware/jdiskreport/
+            </description>
+            <tarfileset dir="build/${unzip.name}" prefix="usr/share/${package.name}">
+                <include name="*.jar"/>
+                <include name="*.gif"/>
+            </tarfileset>
+            <tarfileset dir="build/${unzip.name}" prefix="usr/share/doc/${package.name}">
+                <exclude name="*.jar"/>
+                <exclude name="*.gif"/>
+            </tarfileset>
+            <tarfileset file="build/JGoodies-JDiskReport.desktop" prefix="usr/share/applications"/>
+        </deb>
+    </target>
+    
+    <target name="clean" description="remove all work folders">
+        <delete dir="build"/>
+        <delete dir="dist"/>
+    </target>
+
+</project>

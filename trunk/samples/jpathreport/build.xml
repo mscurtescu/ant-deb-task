@@ -1,0 +1,73 @@
+<project name="Java application deb packager" default="dist">
+
+    <property file="project.properties"/>
+
+    <path id="classpath">
+        <fileset dir="../../dist" includes="*.jar"/>
+    </path>
+
+    <taskdef resource="ant_deb_task.properties" classpathref="classpath"/>
+
+    <target name="unzip">
+        <mkdir dir="build"/>
+        <unzip src="download/${download.name}" dest="build"/>
+        <unjar dest="build/${unzip.name}">
+            <fileset dir="build/${unzip.name}" includes="*.jar"/>
+            <patternset>
+                <include name="**/logo_16x16.gif"/>
+            </patternset>
+            <mapper type="flatten"/>
+        </unjar>
+    </target>
+    
+    <target name="create-desktop-entry">
+        <mkdir dir="build"/>
+        <desktopentry
+            toFile="build/JGoodies-JPathReport.desktop"
+            name="JPathReport"
+            comment="Class Path Analysis"
+            exec="java -jar /usr/share/${package.name}/jpathreport-${version}.jar"
+            path="/usr/share/${package.name}/"
+            icon="/usr/share/${package.name}/logo_16x16.gif"
+            categories="Development;Java"
+        />
+    </target>
+    
+    <target name="dist" depends="unzip, create-desktop-entry" description="build the deb file">
+        <mkdir dir="dist"/>
+        <deb
+            todir="dist"
+            package="${package.name}"
+            section="devel"
+            depends="sun-java5-jre | sun-java6-jre"
+            suggests="jdiskreport"
+        >
+            <version upstream="${version}"/>
+            <maintainer email="Marius Scurtescu" name="marius.scurtescu@gmail.com"/>
+            <description synopsis="Class Path Analysis">
+JPathReport enables you to understand how much space the packages and classes consume in your Java class path. And it can help you find class paths problems.
+
+JPathReport analyses your class paths and collects several statistics which you can view as overview charts and details tables.
+
+This is ad- and nag-free uncrippled binary multi-platform software that is free of charge and that never expires.
+
+http://www.jgoodies.com/freeware/jpathreport/
+            </description>
+            <tarfileset dir="build/${unzip.name}" prefix="usr/share/${package.name}">
+                <include name="*.jar"/>
+                <include name="*.gif"/>
+            </tarfileset>
+            <tarfileset dir="build/${unzip.name}" prefix="usr/share/doc/${package.name}">
+                <exclude name="*.jar"/>
+                <exclude name="*.gif"/>
+            </tarfileset>
+            <tarfileset file="build/JGoodies-JPathReport.desktop" prefix="usr/share/applications"/>
+        </deb>
+    </target>
+    
+    <target name="clean" description="remove all work folders">
+        <delete dir="build"/>
+        <delete dir="dist"/>
+    </target>
+
+</project>

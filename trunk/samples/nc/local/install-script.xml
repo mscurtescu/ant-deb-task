@@ -1,0 +1,14 @@
+<AutomatedInstallation langpack="eng">
+    <HTMLInfoPanel/>
+    <HTMLLicencePanel/>
+    <TargetPanel>
+        <installpath>install</installpath>
+    </TargetPanel>
+    <PacksPanel>
+        <pack name="Program" index="0" selected="true"/>
+        <pack name="Sourcecode" index="1" selected="true"/>
+    </PacksPanel>
+    <InstallPanel/>
+    <ShortcutPanel/>
+    <FinishPanel/>
+</AutomatedInstallation>

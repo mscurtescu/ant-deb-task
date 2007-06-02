@@ -1,0 +1,116 @@
+<project name="Java application deb packager" default="dist">
+
+    <property file="project.properties"/>
+
+    <path id="classpath">
+        <fileset dir="../../dist" includes="*.jar"/>
+    </path>
+
+    <taskdef resource="ant_deb_task.properties" classpathref="classpath"/>
+
+    <target name="unzip">
+        <mkdir dir="build"/>
+        <unzip src="download/${download.name}" dest="build"/>
+        <java jar="build/nc-install.jar" fork="true" dir="build" failonerror="true">
+            <arg file="local/install-script.xml"/>
+        </java>
+        <unzip src="download/${patch.name}" dest="build/install"/>
+    </target>
+    
+    <target name="create-desktop-entry">
+        <mkdir dir="build"/>
+        <desktopentry
+            toFile="build/Jonelo-NumericalChameleon.desktop"
+            name="NumericalChameleon"
+            comment="More than an Unit Converter. A Numerical Chameleon."
+            exec="java -jar nc.jar"
+            path="/usr/share/${package.name}/bin"
+            icon="/usr/share/${package.name}/bin/unix/nc.png"
+            categories="Utility;Calculator;Java"
+        />
+    </target>
+    
+    <target name="dist-main" depends="unzip, create-desktop-entry" description="build the main deb file">
+        <mkdir dir="dist"/>
+        <deb
+            todir="dist"
+            package="${package.name}"
+            section="utils"
+            depends="sun-java5-jre | sun-java6-jre"
+            suggests="${package.name}-sound-en, ${package.name}-sound-de"
+        >
+            <version upstream="${version}"/>
+            <maintainer email="Marius Scurtescu" name="marius.scurtescu@gmail.com"/>
+            <description synopsis="More than an Unit Converter. A Numerical Chameleon.">
+The NumericalChameleon is a free, open source, platform-independent and localized software to convert units. It converts numbers with a precision of up to 1000 significant figures. It supports more than 3200 units in 82 categories, including not only all important physical units of categories like length, area, volume, electricity, magnetism, force, power, energy, pressure, mass, temperature, velocity, acceleration, radioactivity and time, but also exchange rates, timezones, spoken numbers (literally and by audio*), roman numbers, 35 radixes, bits&amp;bytes, screen resolutions, colorcodes, unicodes, international dial codes, calendar and holiday calculations, phonetic alphabets and more. It provides a modern, dynamic and graphical user interface.
+
+You have unlimited access on all categories, units, icons, filters and themes. You can add, modify, hide or delete them. All configuration data are stored in flat files. You can update exchange rates from several webservices.
+
+* At the moment, the audio feature is available for German, US English and the morse code only. A soundcard is required. Soundfiles must be downloaded separately. 
+
+http://www.jonelo.de/java/nc/
+            </description>
+            <tarfileset dir="build/install" prefix="usr/share/${package.name}">
+                <include name="bin/unix/nc.png"/>
+                <include name="bin/nc.jar"/>
+                <include name="data/**"/>
+                <include name="lib/**"/>
+            </tarfileset>
+            <tarfileset dir="build/install" prefix="usr/share/doc/${package.name}">
+                <include name="legal/**"/>
+                <include name="*.txt"/>
+            </tarfileset>
+            <tarfileset file="build/Jonelo-NumericalChameleon.desktop" prefix="usr/share/applications"/>
+        </deb>
+    </target>
+    
+    <target name="dist-sound-en" description="build the US English sound plugin deb file">
+        <mkdir dir="dist"/>
+        <deb
+            todir="dist"
+            package="${package.name}-sound-en"
+            section="utils"
+            depends="${package.name}"
+        >
+            <version upstream="${version.sound.en}"/>
+            <maintainer email="Marius Scurtescu" name="marius.scurtescu@gmail.com"/>
+            <description synopsis="Numerical Chameleon plugin, The US English syllables file (male voice, computer generated)">
+Install this plugin if you would like to use the feature "Speak a number". It is a separate download, because the files are huge; a soundcard is required. Restart the NC and select the conversion "Spoken Numbers".
+
+http://www.jonelo.de/java/nc/
+            </description>
+            <tarfileset dir="download" prefix="usr/share/${package.name}/lib">
+                <include name="ncsound-us_english.jar"/>
+            </tarfileset>
+        </deb>
+    </target>
+    
+    <target name="dist-sound-de" description="build the German plugin deb file">
+        <mkdir dir="dist"/>
+        <deb
+            todir="dist"
+            package="${package.name}-sound-de"
+            section="utils"
+            depends="${package.name}"
+        >
+            <version upstream="${version.sound.de}"/>
+            <maintainer email="Marius Scurtescu" name="marius.scurtescu@gmail.com"/>
+            <description synopsis="Numerical Chameleon plugin, The German syllables file (female voice, human)">
+Install this plugin if you would like to use the feature "Speak a number". It is a separate download, because the files are huge; a soundcard is required. Restart the NC and select the conversion "Spoken Numbers".
+
+http://www.jonelo.de/java/nc/
+            </description>
+            <tarfileset dir="download" prefix="usr/share/${package.name}/lib">
+                <include name="ncsound-german.jar"/>
+            </tarfileset>
+        </deb>
+    </target>
+    
+    <target name="dist" depends="dist-main, dist-sound-en, dist-sound-de"/>
+
+    <target name="clean" description="remove all work folders">
+        <delete dir="build"/>
+        <delete dir="dist"/>
+    </target>
+
+</project>
