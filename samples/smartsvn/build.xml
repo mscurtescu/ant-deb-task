@@ -20,7 +20,7 @@
             comment="The Smart Subversion-Client ${version} by SyntEvo"
             exec="/usr/share/${package.name}/bin/smartsvn.sh"
             path="/usr/share/${package.name}/bin/"
-            icon="/usr/share/${package.name}/bin/icon32.png"
+            icon="/usr/share/${package.name}/bin/smartsvn-32x32.png"
             categories="Development;RevisionControl;Java"
         />
     </target>
@@ -53,6 +53,7 @@ SmartSVN is available in two versions, a free Foundation version and the powerfu
                 <exclude name="**/*.exe"/>
                 <exclude name="**/*.dll"/>
                 <exclude name="**/*.cmd"/>
+                <exclude name="**/*.bat"/>
                 <exclude name="**/*.vmoptions"/>
             </tarfileset>
             <tarfileset file="build/${untar.name}/bin/smartsvn.sh" prefix="usr/share/${package.name}/bin" filemode="755"/>
