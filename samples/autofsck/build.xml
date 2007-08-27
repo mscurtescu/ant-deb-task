@@ -1,0 +1,46 @@
+<project name="Java application deb packager" default="dist">
+
+    <property file="project.properties"/>
+
+    <path id="classpath">
+        <fileset dir="../../dist" includes="*.jar"/>
+    </path>
+
+    <taskdef resource="ant_deb_task.properties" classpathref="classpath"/>
+
+    <target name="untar" description="untar downloaded package">
+        <mkdir dir="build"/>
+        <untar src="download/${download.name}" dest="build" compression="bzip2"/>
+    </target>
+    
+    <target name="dist" depends="untar" description="build the deb file">
+        <mkdir dir="dist"/>
+        <deb
+            todir="dist"
+            package="${package.name}"
+            section="utils"
+            depends="${depends}"
+            postinst="local/postinst"
+            prerm="local/prerm"
+        >
+            <version upstream="${version}"/>
+            <maintainer name="Marius Scurtescu" email="marius.scurtescu@gmail.com"/>
+            <description synopsis="Ensures that the automatic disk checks will no longer inconvenience you">
+AutoFsck is a set of scripts which automate periodic disk checking in such a way that it no longer bothers the user at boot every 30-ish times, and is streamlined in a friendly graphical user interface.
+
+AutoFsck ensures that the automatic disk check will no longer inconvenience you by making your boot times very long.
+
+https://wiki.ubuntu.com/AutoFsck
+            </description>
+            <tarfileset file="build/AutoFsck ${version}/AutoFsck" prefix="etc/X11/gdm/PostSession" filemode="755"/>
+            <tarfileset file="build/AutoFsck ${version}/readme" fullpath="usr/share/doc/${package.name}/README"/>
+            <tarfileset file="local/LICENSE" prefix="usr/share/doc/${package.name}"/>
+        </deb>
+    </target>
+    
+    <target name="clean" description="remove all work folders">
+        <delete dir="build"/>
+        <delete dir="dist"/>
+    </target>
+
+</project>
