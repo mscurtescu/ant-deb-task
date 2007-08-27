@@ -1,0 +1,4 @@
+#!/bin/bash
+
+sed -e "2,3d" -i /etc/X11/gdm/PostSession/Default
+

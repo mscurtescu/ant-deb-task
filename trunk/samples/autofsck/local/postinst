@@ -1,0 +1,6 @@
+#!/bin/bash
+
+sed -e "2i\
+\
+/etc/X11/gdm/PostSession/AutoFsck #Launch AutoFsck V2.0 after session ends
+" -i /etc/X11/gdm/PostSession/Default
