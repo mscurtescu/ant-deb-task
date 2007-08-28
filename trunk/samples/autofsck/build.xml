@@ -25,7 +25,7 @@
             prerm="local/prerm"
         >
             <version upstream="${version}"/>
-            <maintainer name="Marius Scurtescu" email="marius.scurtescu@gmail.com"/>
+            <maintainer name="Marius Scurtescu" email="ant.deb.task@gmail.com"/>
             <description synopsis="Ensures that the automatic disk checks will no longer inconvenience you">
 AutoFsck is a set of scripts which automate periodic disk checking in such a way that it no longer bothers the user at boot every 30-ish times, and is streamlined in a friendly graphical user interface.
 
