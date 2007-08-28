@@ -27,7 +27,7 @@
             depends="${depends}"
         >
             <version upstream="${version}"/>
-            <maintainer email="root@example.com"/>
+            <maintainer name="Marius Scurtescu" email="ant.deb.task@gmail.com"/>
             <description synopsis="Declarative Drawing of UML Diagrams">
 UMLGraph allows the declarative specification and drawing of UML class and sequence diagrams. The current features are part of an ongoing effort aiming to provide support for all types UML diagrams.
 

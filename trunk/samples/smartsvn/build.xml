@@ -35,7 +35,7 @@
             suggests="smartcvs"
         >
             <version upstream="${version}"/>
-            <maintainer email="Marius Scurtescu" name="marius.scurtescu@gmail.com"/>
+            <maintainer email="Marius Scurtescu" name="ant.deb.task@gmail.com"/>
             <description synopsis="The Smart Subversion-Client">
 A Subversion client GUI written in Java by SyntEvo
 http://www.syntevo.com/smartsvn/
