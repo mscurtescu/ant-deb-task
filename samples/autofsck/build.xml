@@ -20,6 +20,7 @@
             package="${package.name}"
             section="utils"
             depends="${depends}"
+            predepends="${pre.depends}"
             preinst="local/preinst"
             postinst="local/postinst"
             prerm="local/prerm"
