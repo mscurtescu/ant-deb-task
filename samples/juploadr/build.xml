@@ -36,7 +36,7 @@
             architecture="i386"
             depends="${depends}">
             <version upstream="${version}"/>
-            <maintainer email="root@example.com"/>
+            <maintainer name="Marius Scurtescu" email="ant.deb.task@gmail.com"/>
             <description synopsis="jUploadr: A photo uploader for Linux,Windows and Mac">
 jUploadr is a cross platform, cross-site Photo uploader. Currently it runs on Windows Linux and OS X and supports both Flickr and Zooomr. It allows you to set all properties of a photo before you upload it. It also supports batch editing, so you can make short work of uploading a bunch of files.
             </description>
@@ -65,7 +65,7 @@ jUploadr is a cross platform, cross-site Photo uploader. Currently it runs on Wi
             architecture="amd64"
             depends="${depends}">
             <version upstream="${version}"/>
-            <maintainer email="root@example.com"/>
+            <maintainer name="Marius Scurtescu" email="ant.deb.task@gmail.com"/>
             <description synopsis="jUploadr: A photo uploader for Linux,Windows and Mac">
 jUploadr is a cross platform, cross-site Photo uploader. Currently it runs on Windows Linux and OS X and supports both Flickr and Zooomr. It allows you to set all properties of a photo before you upload it. It also supports batch editing, so you can make short work of uploading a bunch of files.
             </description>

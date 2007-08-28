@@ -40,7 +40,7 @@
             suggests="${package.name}-sound-en, ${package.name}-sound-de"
         >
             <version upstream="${version}"/>
-            <maintainer email="Marius Scurtescu" name="marius.scurtescu@gmail.com"/>
+            <maintainer email="Marius Scurtescu" name="ant.deb.task@gmail.com"/>
             <description synopsis="More than an Unit Converter. A Numerical Chameleon.">
 The NumericalChameleon is a free, open source, platform-independent and localized software to convert units. It converts numbers with a precision of up to 1000 significant figures. It supports more than 3200 units in 82 categories, including not only all important physical units of categories like length, area, volume, electricity, magnetism, force, power, energy, pressure, mass, temperature, velocity, acceleration, radioactivity and time, but also exchange rates, timezones, spoken numbers (literally and by audio*), roman numbers, 35 radixes, bits&amp;bytes, screen resolutions, colorcodes, unicodes, international dial codes, calendar and holiday calculations, phonetic alphabets and more. It provides a modern, dynamic and graphical user interface.
 

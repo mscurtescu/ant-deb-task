@@ -43,7 +43,7 @@
             suggests="jdiskreport"
         >
             <version upstream="${version}"/>
-            <maintainer email="Marius Scurtescu" name="marius.scurtescu@gmail.com"/>
+            <maintainer email="Marius Scurtescu" name="ant.deb.task@gmail.com"/>
             <description synopsis="Class Path Analysis">
 JPathReport enables you to understand how much space the packages and classes consume in your Java class path. And it can help you find class paths problems.
 

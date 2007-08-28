@@ -34,7 +34,7 @@
             depends="sun-java5-jre | sun-java6-jre"
         >
             <version upstream="${version}"/>
-            <maintainer email="Marius Scurtescu" name="marius.scurtescu@gmail.com"/>
+            <maintainer email="Marius Scurtescu" name="ant.deb.task@gmail.com"/>
             <description synopsis="A Civilization-like game in which the player has to conquer the new world.">
 The FreeCol team aims to create an Open Source version of Colonization (released under the GPL). At first we'll try to make an exact clone of Colonization. The visuals will be brought up to date with more recent standards but will remain clean, simple and functional. Certain new 'features' will be implemented but the gameplay and the rules will be exactly the same as the original game. Examples of modern features are: an isometric map and multiplayer support.
 This clone will be developed incrementally and result in FreeCol 1.0.0 which will be an almost exact Colonization clone. Incremental development basically means that we'll add features one at a time. This allows us to have a running program at all times and also to release an unfinished but working game once in a while.

@@ -36,7 +36,7 @@
             architecture="i386"
             depends="${depends}">
             <version upstream="${version}"/>
-            <maintainer email="root@example.com"/>
+            <maintainer name="Marius Scurtescu" email="ant.deb.task@gmail.com"/>
             <description synopsis="${description.synopsis}">
 ${description.body}
             </description>
@@ -61,7 +61,7 @@ ${description.body}
             architecture="amd64"
             depends="${depends}">
             <version upstream="${version}"/>
-            <maintainer email="root@example.com"/>
+            <maintainer name="Marius Scurtescu" email="ant.deb.task@gmail.com"/>
             <description synopsis="${description.synopsis}">
 ${description.body}
             </description>
