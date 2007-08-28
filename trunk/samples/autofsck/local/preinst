@@ -6,6 +6,7 @@ if [ "$1" = "install" ] && [ -e /etc/X11/gdm/PostSession/Default.pre-fsck2.backu
     rm /etc/X11/gdm/PostSession/AutoFsck
     rm /etc/X11/gdm/PostSession/Default.pre-fsck2.backup
     sed -e "/AutoFsck/d" -i /etc/X11/gdm/PostSession/Default
+    chmod a+x /etc/X11/gdm/PostSession/Default
 fi
 
 exit 0
