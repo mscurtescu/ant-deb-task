@@ -1,0 +1,11 @@
+# Linux grails(8) completion
+#
+_grails()
+{
+	local cur
+	COMPREPLY=()
+	cur=${COMP_WORDS[COMP_CWORD]}
+	COMPREPLY=( $(compgen -W '$(cat /usr/share/grails/command-list)'  -- $cur))
+	return 0
+} &&
+complete -F _grails grails

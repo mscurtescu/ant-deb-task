@@ -1,0 +1,68 @@
+<project name="Java application deb packager" default="dist">
+
+    <property file="project.properties"/>
+
+    <path id="classpath">
+        <fileset dir="../../dist" includes="*.jar"/>
+    </path>
+
+    <taskdef resource="ant_deb_task.properties" classpathref="classpath"/>
+
+    <target name="untar" description="untar downloaded package">
+        <mkdir dir="build"/>
+        <untar src="download/${download.name}" dest="build" compression="gzip"/>
+    </target>
+    
+    <target name="prepare-bin" depends="untar">
+        <mkdir dir="build/bin"/>
+        <copy todir="build/bin">
+            <fileset dir="build/${untar.name}/bin">
+                <exclude name="*.bat"/>
+                <exclude name="cyg*"/>
+                <exclude name="startGrails*"/>
+            </fileset>
+        </copy>
+        <replace dir="build/bin" token="`dirname &quot;$0&quot;`" value="/usr/share/${package.name}/bin # edited by ant-deb-task&#10;export GRAILS_HOME=/usr/share/${package.name}"/>
+    </target>
+    
+    <target name="dist" depends="untar, prepare-bin" description="build the deb file">
+        <mkdir dir="dist"/>
+        <deb
+            todir="dist"
+            package="${package.name}"
+            section="devel"
+            depends="${depends}"
+        >
+            <version upstream="${version}"/>
+            <maintainer name="Marius Scurtescu" email="ant.deb.task@gmail.com"/>
+            <description synopsis="an open-source web application framework that leverages  the Groovy language  and complements Java Web development.">
+Grails  aims to bring the "coding by convention" paradigm to  Groovy . It's an open-source web application framework that leverages  the Groovy language  and complements Java Web development. You can use Grails as a standalone development environment that hides all configuration details or integrate your Java business logic.
+Grails aims to make development as simple as possible and hence should appeal to a wide range of developers not just those from the Java community.
+
+http://groovy.codehaus.org/
+            </description>
+            <tarfileset dir="build/${untar.name}" prefix="usr/share/${package.name}">
+                <exclude name="bin/**"/>
+                <exclude name="doc/**"/>
+                <exclude name="INSTALL"/>
+                <exclude name="LICENSE"/>
+                <exclude name="README"/>
+            </tarfileset>
+            <tarfileset file="build/${untar.name}/bin/startGrails" prefix="usr/share/${package.name}/bin" filemode="755"/>
+            <tarfileset file="local/grails_commands" prefix="etc/bash_completion.d"/>
+            <tarfileset file="local/command-list" prefix="usr/share/${package.name}"/>
+            <tarfileset dir="build/bin" prefix="usr/bin" filemode="755"/>
+            <tarfileset dir="build/${untar.name}" prefix="usr/share/doc/${package.name}">
+                <include name="doc/**"/>
+                <include name="LICENSE"/>
+                <include name="README"/>
+            </tarfileset>
+        </deb>
+    </target>
+    
+    <target name="clean" description="remove all work folders">
+        <delete dir="build"/>
+        <delete dir="dist"/>
+    </target>
+
+</project>

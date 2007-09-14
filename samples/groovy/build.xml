@@ -1,0 +1,71 @@
+<project name="Java application deb packager" default="dist">
+
+    <property file="project.properties"/>
+
+    <path id="classpath">
+        <fileset dir="../../dist" includes="*.jar"/>
+    </path>
+
+    <taskdef resource="ant_deb_task.properties" classpathref="classpath"/>
+
+    <target name="untar" description="untar downloaded package">
+        <mkdir dir="build"/>
+        <untar src="download/${download.name}" dest="build" compression="gzip"/>
+    </target>
+    
+    <target name="prepare-bin" depends="untar">
+        <mkdir dir="build/bin"/>
+        <copy todir="build/bin">
+            <fileset dir="build/${untar.name}/bin">
+                <exclude name="*.bat"/>
+                <exclude name="startGroovy*"/>
+            </fileset>
+        </copy>
+        <replace dir="build/bin" token="`dirname &quot;$0&quot;`" value="/usr/share/${package.name}/bin # edited by ant-deb-task&#10;export GROOVY_HOME=/usr/share/${package.name}"/>
+    </target>
+    
+    <target name="dist" depends="untar, prepare-bin" description="build the deb file">
+        <mkdir dir="dist"/>
+        <deb
+            todir="dist"
+            package="${package.name}"
+            section="devel"
+            depends="${depends}"
+        >
+            <version upstream="${version}"/>
+            <maintainer name="Marius Scurtescu" email="ant.deb.task@gmail.com"/>
+            <description synopsis="An agile dynamic language for the Java Platform">
+Groovy ...
+
+    * is an agile and dynamic language for the Java Virtual Machine
+    * builds upon the strengths of Java but has additional power features inspired by languages like Python, Ruby and Smalltalk
+    * makes modern programming features available to Java developers with almost-zero learning curve
+    * supports Domain Specific Languages and other compact syntax so your code becomes easy to read and maintain
+    * makes writing shell and build scripts easy with its powerful processing primitives, OO abilities and an Ant DSL
+    * increases developer productivity by reducing scaffolding code when developing web, GUI, database or console applications
+    * simplifies testing by supporting unit testing and mocking out-of-the-box
+    * seamlessly integrates with all existing Java objects and libraries
+    * compiles straight to Java bytecode so you can use it anywhere you can use Java
+
+http://groovy.codehaus.org/
+            </description>
+            <tarfileset dir="build/${untar.name}" prefix="usr/share/${package.name}">
+                <exclude name="bin/**"/>
+                <exclude name="docs/**"/>
+                <exclude name="LICENSE.txt"/>
+            </tarfileset>
+            <tarfileset file="build/${untar.name}/bin/startGroovy" prefix="usr/share/${package.name}/bin" filemode="755"/>
+            <tarfileset dir="build/bin" prefix="usr/bin" filemode="755"/>
+            <tarfileset dir="build/${untar.name}" prefix="usr/share/doc/${package.name}">
+                <include name="LICENSE.txt"/>
+            </tarfileset>
+            <tarfileset dir="build/${untar.name}/docs" prefix="usr/share/doc/${package.name}/html"/>
+        </deb>
+    </target>
+    
+    <target name="clean" description="remove all work folders">
+        <delete dir="build"/>
+        <delete dir="dist"/>
+    </target>
+
+</project>
