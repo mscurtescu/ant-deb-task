@@ -243,10 +243,12 @@ public class Deb extends Task
     private SortedSet _dataFolders;
 
     private static final Tar.TarCompressionMethod GZIP_COMPRESSION_METHOD = new Tar.TarCompressionMethod ();
+    private static final Tar.TarLongFileMode GNU_LONGFILE_MODE = new Tar.TarLongFileMode ();
 
     static
     {
         GZIP_COMPRESSION_METHOD.setValue ("gzip");
+        GNU_LONGFILE_MODE.setValue(Tar.TarLongFileMode.GNU);
     }
 
     public void setToDir (File toDir)
@@ -551,6 +553,7 @@ public class Deb extends Task
         dataTar.setTaskName (getTaskName ());
         dataTar.setDestFile (dataFile);
         dataTar.setCompression (GZIP_COMPRESSION_METHOD);
+        dataTar.setLongfile(GNU_LONGFILE_MODE);
 
         // add folders
         for (Iterator dataFoldersIter = _dataFolders.iterator (); dataFoldersIter.hasNext ();)
