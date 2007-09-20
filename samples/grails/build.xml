@@ -8,12 +8,13 @@
 
     <taskdef resource="ant_deb_task.properties" classpathref="classpath"/>
 
-    <target name="untar" description="untar downloaded package">
+    <target name="expand" description="expand downloaded packages">
         <mkdir dir="build"/>
         <untar src="download/${download.name}" dest="build" compression="gzip"/>
+        <unzip src="download/${download.doc.name}" dest="build"/>
     </target>
     
-    <target name="prepare-bin" depends="untar">
+    <target name="prepare-bin" depends="expand">
         <mkdir dir="build/bin"/>
         <copy todir="build/bin">
             <fileset dir="build/${untar.name}/bin">
@@ -25,7 +26,7 @@
         <replace dir="build/bin" token="`dirname &quot;$0&quot;`" value="/usr/share/${package.name}/bin # edited by ant-deb-task&#10;export GRAILS_HOME=/usr/share/${package.name}"/>
     </target>
     
-    <target name="dist" depends="untar, prepare-bin" description="build the deb file">
+    <target name="dist" depends="expand, prepare-bin" description="build the deb file">
         <mkdir dir="dist"/>
         <deb
             todir="dist"
@@ -53,10 +54,19 @@ http://groovy.codehaus.org/
             <tarfileset file="local/command-list" prefix="usr/share/${package.name}"/>
             <tarfileset dir="build/bin" prefix="usr/bin" filemode="755"/>
             <tarfileset dir="build/${untar.name}" prefix="usr/share/doc/${package.name}">
-                <include name="doc/**"/>
                 <include name="LICENSE"/>
                 <include name="README"/>
             </tarfileset>
+            <tarfileset dir="build/${untar.name}/doc" prefix="usr/share/doc/${package.name}">
+                <include name="**"/>
+            </tarfileset>
+            <tarfileset dir="download" prefix="usr/share/doc/${package.name}">
+                <include name="*.pdf"/>
+            </tarfileset>
+            <tarfileset dir="build/${unzip.doc.name}" prefix="usr/share/doc/${package.name}">
+                <include name="*.pdf"/>
+            </tarfileset>
+            <tarfileset dir="build/${unzip.doc.name}/GRAILS" prefix="usr/share/doc/${package.name}/html"/>
         </deb>
     </target>
     
