@@ -1,0 +1,85 @@
+#summary Usage of the Ant tasks
+
+= Introduction =
+
+There are two Ant tasks provided, on to create the actual debian packages and a helper task to create desktop entries.
+
+
+= deb Task =
+
+== Attributes ==
+
+  * *toDir*
+  * *package*
+  * *version*
+  * *section* - one of: ("admin", "base", "comm", "devel", "doc", "editors", "electronics", "embedded", "games", "gnome", "graphics", "hamradio", "interpreters", "kde", "libs", "libdevel", "mail", "math", "misc", "net", "news", "oldlibs", "otherosfs", "perl", "python", "science", "shells", "sound", "tex", "text", "utils", "web", "x11") and also the following prefixes could be used: ("contrib/", "non-free/")
+  * *priority* - one of: ("required", "important", "standard", "optional", "extra")
+  * *architecture*
+  * *depends*
+  * *preDepends*
+  * *recommends*
+  * *suggests*
+  * *enhances*
+  * *conflicts*
+  * *maintainer*
+  * *preinst*
+  * *postinst*
+  * *prerm*
+  * *postrm*
+  * *config*
+  * *templates*
+
+== Nested Elements ==
+
+  * *description*
+    * *synopsis*
+    * extended description as text
+  * *version*
+    * *epoch*
+    * *upstream*
+    * *debian*
+  * *maintainer*
+    * *name*
+    * *email*
+  * *conffiles*
+    * tafileset of conffiles
+  * one or more tarfileset
+
+
+= desktopEntry Task =
+
+== Attributes ==
+
+  * *toFile*
+  * *type* - one of: ("Application", "Link", "Directory"), default is "Application"
+  * *name*
+  * *genericName*
+  * *noDisplay* - boolean
+  * *comment*
+  * *icon*
+  * *onlyShowIn*
+  * *notShowIn*
+  * *tryExec*
+  * *exec*
+  * *path*
+  * *terminal* - boolean
+  * *mimeType*
+  * *categories*
+  * *url*
+
+== Nested Elements ==
+
+All the nested elements are used for localized content.
+
+  * *name*
+  * *genericName*
+  * *comment*
+  * *icon*
+
+=== Attributes of Nested Localized Content ===
+
+  * *lang*
+  * *country*
+  * *encoding*
+  * *modifier*
+  * *value* - the actual localized content
