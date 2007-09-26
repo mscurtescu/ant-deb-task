@@ -21,3 +21,6 @@ List of valid categories:
 
 = Debian Documentation Files =
   * http://www.debian.org/doc/debian-policy/ch-docs.html
+
+= GNU Documentation Files =
+ * http://www.gnu.org/prep/standards/html_node/Documentation.html
