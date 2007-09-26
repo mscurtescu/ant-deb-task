@@ -18,3 +18,6 @@ List of valid entries:
 
 List of valid categories:
   * http://standards.freedesktop.org/menu-spec/menu-spec-1.0.html#category-registry
+
+= Debian Documentation Files =
+  * http://www.debian.org/doc/debian-policy/ch-docs.html
