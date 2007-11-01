@@ -5,9 +5,9 @@ set -e
 if [ "$1" = "configure" ] ; then
     sed -e "2i\
 # Start-AutoFsck: section autmatically added by AutoFsck\n\
-# Launch AutoFsck V2.0 after session ends\n\
-/etc/X11/gdm/PostSession/AutoFsck\n\
-# End-AutoFsck" -i /etc/X11/gdm/PostSession/Default
+# Launch AutoFsck V2.5 after session ends\n\
+/etc/gdm/PostSession/AutoFsck\n\
+# End-AutoFsck" -i /etc/gdm/PostSession/Default
 fi
 
 exit 0
