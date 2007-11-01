@@ -7,8 +7,20 @@
     </path>
 
     <taskdef resource="ant_deb_task.properties" classpathref="classpath"/>
-
-    <target name="dist" description="build the deb file">
+    
+    <target name="create-desktop-entry" description="create desktop entry file">
+        <mkdir dir="build"/>
+        <desktopentry
+            toFile="build/autofsck.desktop"
+            name="Periodic Disk Checking"
+            comment="Configure the way periodic disk checking behaves on this system."
+            exec="autofsck --menu"
+            icon="/usr/share/pixmaps/autofsck.png"
+            categories="System;Settings"
+        />
+    </target>
+    
+    <target name="dist" depends="create-desktop-entry" description="build the deb file">
         <mkdir dir="dist"/>
         <deb
             todir="dist"
@@ -27,12 +39,18 @@ AutoFsck is a script which automates periodic disk checking in such a way that i
 
 https://wiki.ubuntu.com/AutoFsck 
             </description>
-            <tarfileset file="local/AutoFsck" prefix="etc/gdm/PostSession" filemode="755"/>
+            <tarfileset file="local/autofsck" prefix="usr/bin" filemode="755"/>
             <tarfileset dir="local" prefix="usr/share/doc/${package.name}">
                 <include name="README"/>
                 <include name="LICENSE"/>
                 <include name="CHANGELOG"/>
+                <include name="GUI-HELP"/>
             </tarfileset>
+            <tarfileset file="local/autofsck.png" prefix="usr/share/pixmaps"/>
+            <tarfileset file="build/autofsck.desktop" prefix="usr/share/applications"/>
+            <conffiles dir="local" prefix="etc" filemode="644">
+                <include name="autofsckrc"/>
+            </conffiles>
         </deb>
     </target>
     

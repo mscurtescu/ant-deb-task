@@ -3,7 +3,12 @@
 set -e
 
 if [ "$1" = "remove" ] || [ "$1" = "upgrade"] ; then
-    sed -e "/^# Start-AutoFsck/,/^# End-AutoFsck/d" -i /etc/gdm/PostSession/Default
+    if [ -e /etc/gdm/PostSession/Default ] ; then
+        sed -e "/^# Start-AutoFsck/,/^# End-AutoFsck/d" -i /etc/gdm/PostSession/Default
+    fi
+    if [ -e /etc/kde3/kdm/Xreset ] ; then
+        sed -e "/^# Start-AutoFsck/,/^# End-AutoFsck/d" -i /etc/kde3/kdm/Xreset
+    fi
 fi
 
 exit 0
