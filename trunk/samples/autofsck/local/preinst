@@ -9,4 +9,8 @@ if [ "$1" = "install" ] && [ -e /etc/X11/gdm/PostSession/Default.pre-fsck2.backu
     chmod a+x /etc/X11/gdm/PostSession/Default
 fi
 
+if [ "$1" = "upgrade" ] ; then
+    sed -e "/^# Start-AutoFsck/,/^# End-AutoFsck/d" -i /etc/gdm/PostSession/Default
+fi
+
 exit 0
