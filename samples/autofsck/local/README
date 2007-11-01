@@ -1,0 +1,43 @@
+AutoFsck V2.5 - designed for Ubuntu - 20th September 2007
+by Jonathan Musther - jmusther@gmail.com
+Released Under the GNU General Public License version 3
+
+This script will automate the process of regular disk checking in a way
+which is user friendly and non-intrusive.
+
+----------Requirements----------
+GDM - Gnome Display Manager (or some other method of calling the script)
+beep - (optional, but provides audio prompt when disks need checking)
+
+----------Installation----------
+Hopefully you installed AutoFsck from a package for you system, such as a .deb
+However this section is included for completeness and information.
+
+It's really very simple, AutoFsck is called (by GDM, as root) when the user logs
+out, this is achieved by inserting:
+/etc/gdm/PostSession/AutoFsck
+into the file /etc/gdm/PostSession/Default.  
+Note that you do not have to be running gnome, just GDM.  If you wish to us
+AutoFsck without using GDM, you'll need to find a way call the script as root
+when the user logs out / shuts down.
+
+----------Using Autofsck----------
+AutoFsck is designed to be simple, so simple in fact that you don't actively use it at
+all.  Every time you log out, the necessity of disk checking is evaluated, and if required
+you are prompted.  If you agree to the check, it is done on shutdown and then the system
+is halted.  If you do not agree, the system is prevented from automatically checking the
+disks on next boot (in order not to inconvenience you).
+
+----------How does it work?-------
+AutoFsck uses tune2fs to get information about your filesystems, this information is
+the 'Mount Count' and 'Maximum Mount Count'.  
+If fsck needs to be run, and you agree, AutoFsck creates a script and places it with
+the rc0 scripts such that it will be run on shutdown, just before system halt.  The
+newly created rc script will check your filesystems, remove itself, and allow the 
+shutdown process to continue.
+
+----------Contact----------
+If you wish to contact me, Jonathan Musther, please email me at:
+jmusther@gmail.com
+
+I hope you find AutoFsck useful.
