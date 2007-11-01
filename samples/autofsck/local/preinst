@@ -10,7 +10,12 @@ if [ "$1" = "install" ] && [ -e /etc/X11/gdm/PostSession/Default.pre-fsck2.backu
 fi
 
 if [ "$1" = "upgrade" ] ; then
-    sed -e "/^# Start-AutoFsck/,/^# End-AutoFsck/d" -i /etc/gdm/PostSession/Default
+    if [ -e /etc/gdm/PostSession/Default ] ; then
+        sed -e "/^# Start-AutoFsck/,/^# End-AutoFsck/d" -i /etc/gdm/PostSession/Default
+    fi
+    if [ -e /etc/kde3/kdm/Xreset ] ; then
+        sed -e "/^# Start-AutoFsck/,/^# End-AutoFsck/d" -i /etc/kde3/kdm/Xreset
+    fi
 fi
 
 exit 0

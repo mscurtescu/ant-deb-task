@@ -3,11 +3,20 @@
 set -e
 
 if [ "$1" = "configure" ] ; then
-    sed -e "2i\
+    if [ -e /etc/gdm/PostSession/Default ] ; then
+        sed -e "2i\
 # Start-AutoFsck: section autmatically added by AutoFsck\n\
-# Launch AutoFsck V2.5 after session ends\n\
-/etc/gdm/PostSession/AutoFsck\n\
+# Launch AutoFsck V3.0 after session ends\n\
+/usr/bin/autofsck\n\
 # End-AutoFsck" -i /etc/gdm/PostSession/Default
+    fi
+    if [ -e /etc/kde3/kdm/Xreset ] ; then
+        sed -e "2i\
+# Start-AutoFsck: section autmatically added by AutoFsck\n\
+# Launch AutoFsck V3.0 after session ends\n\
+/usr/bin/autofsck\n\
+# End-AutoFsck" -i /etc/kde3/kdm/Xreset
+    fi
 fi
 
 exit 0

@@ -1,0 +1,9 @@
+Welcome to the AutoFsck graphical configuration utility.  
+From the menu you have just seen, you can configure:
+
+1:  How often the disks on your system are checked.  This is a numeric value, for example 30; in this case, the disks on most systems will be checked after the computer has been booted 30 times.  Recommendations vary, but 35 is a common default, however if you find you boot a laptop several times a day, a higher value may help.  It is generally recommended to check older hard disk drives more regularly than new ones.  For more advice, try googling for information about fsck.
+
+2:  Whether there is an audible prompt when the dialogue asking to check your disks appears.  This is very useful as it is possible that when shutting down your computer, you may quickly turn off the monitor before the AutoFsck dialogue appears, or without noticing it.  If the audio prompt is on, you'll hear a short musical scale (C Blues) to prompt you, but some users may wish to disable this if they need a quiet environment.
+
+AutoFsck was written by Jonathan Musther - jmusther@gmail.com
+http://wiki.ubuntu.com/AutoFsck

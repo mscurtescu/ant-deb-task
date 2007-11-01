@@ -1,28 +1,36 @@
-AutoFsck V2.5 - 20th September 2007 - GNU General Public License v3
+----------Release Notes V3.0----------
+Added support for KDM as well as GDM, AutoFsck is called from:
+/etc/gdm/PostSession/Default		GDM
+/etc/kde3/kdm/Xreset			KDM
+And the script is located:
+/usr/sbin/autofsck
+A config file is found at:
+/etc/autofsck
+A .desktop file is also used for desktop integration to the GUI config tool.
 
-Changelog:
+Also written in some sub-scripts, accessible via the command line options:
+--beep
+--set
+--config
+--menu
 
-----------2.5----------
-AutoFsck V2.5 (released 20th September 2007) is another major rewrite, the entire
-disk checking system (the script which calls fsck) has been rewritten.  
+--beep enables or dissables the audio prompt which is produced (via beep)
+when the dialogue appears.  
 
-New Features:
+--set allows the user to easily set the frequency of the checks (it changes
+the 'max mount count' of all filesystems to a figure specified by the user).
 
- - An audible alert (provided by package 'beep') sounds when the user is prompted.
- - Filesystem checks are actually performed on shutdown, no longer requires restart.
+--config loads the configuration script which gives access to --beep and --set
+via a gui menu (provided by zenity).
 
-As AutoFsck has changed so much, here's an outline of how it works:
-When the user ends their session, AutoFsck is called by /etc/gdm/PostSession/Default.
-AutoFsck uses tune2fs to find out if any filesystems are nearly due for checking.
-If a check is required, the user is prompted.
-If user declines, /fastboot is created and script terminated.
-If user accepts, /etc/rc0.d/S89autofsck is created.
-When the machines shuts down it executes S89autofsck just before S90halt.
-S89autofsck remounts the filesystems read-only and runs fsck.
-S89autofsck then remounts / read-write to remove itself.
-Shutdown continues and completes.
+--menu calls --config, but via gksu so that the password will be requested, and
+the script will then be run as root.  This means the password will only be
+required once.
 
-----------2.0----------
+NOTE that for autofsck to run normally (do it's usual checks when the user logs
+out) it needs to be called with --check
+
+----------Release Notes V2.5----------
 AutoFsck V2.0 uses the same method as AutoFsck v1 for checking the disks, but the
 method used to determine if a disk check is required, and the asking of the user
 has been completely re-written.
@@ -30,6 +38,7 @@ has been completely re-written.
 The main advantages of the rewrite are:
 
  - AutoFsck now works regardless of the maximum mount count variable set on the partition.
+
  - The user is now queried on shutdown rather than login. 
 
 This is the second version of AutoFsck, I believe it to be stable and production
