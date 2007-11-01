@@ -1,0 +1,42 @@
+AutoFsck V2.5 - 20th September 2007 - GNU General Public License v3
+
+Changelog:
+
+----------2.5----------
+AutoFsck V2.5 (released 20th September 2007) is another major rewrite, the entire
+disk checking system (the script which calls fsck) has been rewritten.  
+
+New Features:
+
+ - An audible alert (provided by package 'beep') sounds when the user is prompted.
+ - Filesystem checks are actually performed on shutdown, no longer requires restart.
+
+As AutoFsck has changed so much, here's an outline of how it works:
+When the user ends their session, AutoFsck is called by /etc/gdm/PostSession/Default.
+AutoFsck uses tune2fs to find out if any filesystems are nearly due for checking.
+If a check is required, the user is prompted.
+If user declines, /fastboot is created and script terminated.
+If user accepts, /etc/rc0.d/S89autofsck is created.
+When the machines shuts down it executes S89autofsck just before S90halt.
+S89autofsck remounts the filesystems read-only and runs fsck.
+S89autofsck then remounts / read-write to remove itself.
+Shutdown continues and completes.
+
+----------2.0----------
+AutoFsck V2.0 uses the same method as AutoFsck v1 for checking the disks, but the
+method used to determine if a disk check is required, and the asking of the user
+has been completely re-written.
+
+The main advantages of the rewrite are:
+
+ - AutoFsck now works regardless of the maximum mount count variable set on the partition.
+ - The user is now queried on shutdown rather than login. 
+
+This is the second version of AutoFsck, I believe it to be stable and production
+ready, however if there are any bugs, please drop me an email.
+AutoFsck was designed for Ubuntu, and has so far been tested on:
+Ubuntu 6.06LTS - The Dapper Drake
+Ubuntu 6.10 - The Edgy Eft
+Ubuntu 7.04 - The Feisty Fawn
+It should work on any Gnome based GNU/Linux system, please email me to let me
+know what you have tried it on.

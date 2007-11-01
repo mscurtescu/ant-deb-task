@@ -1,0 +1,150 @@
+#!/bin/bash
+#
+#	AutoFsck V2.5 by Jonathan Musther - 20th September 2007
+#
+#	The purpose of this script is to make checking your partitions using fsck
+#	simple, streamlined and convenient.  It will prompt you on shutdown / logout
+#	if any partitions need checking.
+#
+#	This script was written specifically for Ubuntu, but should work on other
+#	GNU/Linux systems.  The only things to note are that this script must be
+#	run as root, and ideally should be called when the user shuts down / logs
+#	out.  If using GDM this is easily done by calling it from the script 
+#	/etc/X11/gdm/PostSession/Default, it will then be run when a user logs out 
+#	and will have root privileges.
+#
+#	This script is released under the GNU General Public License V3 or later.
+#
+#	Many thanks to osor from LinuxQuestions.org
+#
+#	Check out Slingshot, a great open source game at http://www.slingshot-game.org
+#
+#	Contact: musther@gmail.com
+#
+#------------------SCRIPT STARTS--------------------
+#
+#Basically this first section checks the mount command for mounted 
+#partitions, /dev/sdX and /dev/hdX.  Then it checks the mount count 
+#and maximum mount count of each one, any which is nearly ready for 
+#checking causes $CHECK to be flagged to "1" and therefore starts 
+#the main user interactive bit of the script.
+
+CHECK="0"
+
+#Consolidate info about the filesystems, given by mount.
+function mountread {
+	for i in $( mount | grep --regexp="/dev/hd" --regexp="/dev/sd" ); do
+		echo $i
+	done
+}
+
+#Loop to determine filesystems that need checking.
+#MC = Mount count - MMC = Max Mount Count.
+for i in $( mountread | grep --regexp="/dev/hd" --regexp="/dev/sd" ); do
+	MC=$(tune2fs -l $i | grep --regexp="Mount count:" | tr -d "Mount count:")
+	MMC=$(tune2fs -l $i | grep --regexp="Maximum mount count:" | tr -d "Maximum mount count:")
+	MMC=$(echo $(($MMC-1)))
+if [ "$MC" -ge "$MMC" ]; then
+	CHECK="1"
+fi
+done
+
+#Find out if check required and prompt user.
+if [ "$CHECK" = "0" ]; then #If no check required, exit.
+	exit
+fi				#If a check is required ask the user, then set up checks.
+beep -f 523.25 -n -f 622.25 -l 100 -n -f 698.46 -n -f 739.99 -l 100 -n -f 783.99 -n -f 932.33 -l 100 -n -f 1046.5 -l 400&
+zenity --question --text "One or more of your hard disks is signalling that it is due for checking.  If you are shutting down your computer, this could be a good time to run the checks.  If you are shutting down and would like to run the checks before your computer powers down, please click 'ok'.  If you do not want to run the checks now, please click cancel.  If you click cancel you will be prompted again next time you log out or shut down.  NOTE that if you click 'ok' your computer will check the drives before powering off, this may take some time - please ensure that your computer is not running on battery power." --title="AutoFsck"
+if [ "$?" = "1" ]; then
+touch /fastboot		#If user says 'no', clean up from previous 'yes', create /fastboot and exit.
+rm /etc/rc0.d/S80autofsck.sh
+exit
+fi
+
+#The rest of this script is given over to creating the script to
+#unmount filesystems, remount read-only and then run fsck.
+#This is the script that does all the work, it will be placed in
+#/etc/rc0.d/S80autofsck.sh so it will be run just before S90halt
+#when all processes should have finished writing to the / filesystem.
+#For creating purposes the script is placed in /tmp and then moved,
+#here's the first part.
+touch /fastboot		#This will ensure that no fsck is run on next boot.
+touch /tmp/autofsck.sh
+echo \#! /bin/sh >> /tmp/autofsck.sh
+echo \# >> /tmp/autofsck.sh
+echo \# This is a temporary script, it is part of AutoFsck and should >> /tmp/autofsck.sh
+echo \# not \(in most cases\) be here while the system is in multi-user mode. >> /tmp/autofsck.sh
+echo \# >> /tmp/autofsck.sh
+
+echo /bin/sync >> /tmp/autofsck.sh
+
+#For the next bit we use the same looping system as before to find the 
+#filesystems so that we can fsck run on them, and then add lines to the 
+#script we're building.
+#The lines added below cause filesystems located by the loop to be
+#remounted as read-only, which is what we need for fsck to run safely.
+for i in $( mountread | grep --regexp="/dev/hd" --regexp="/dev/sd" ); do
+#This little loop is added to the script we're building as many times as is
+#needed to remount the filesystems read-only.
+	echo maxtries=2 >> /tmp/autofsck.sh
+	echo count=0 >> /tmp/autofsck.sh
+	echo while \! /bin/mount -no remount,ro $i\; do >> /tmp/autofsck.sh
+	echo clear >> /tmp/autofsck.sh
+	echo echo \"Unable to remount $i as read-only,\" \>\&2 >> /tmp/autofsck.sh
+	echo echo \"it has probably already been done.\" \>\&2 >> /tmp/autofsck.sh
+	echo echo \" \" \>\&2 >> /tmp/autofsck.sh
+	echo echo \"Retrying in...\" \>\&2 >> /tmp/autofsck.sh
+	echo echo \"5\" \>\&2 >> /tmp/autofsck.sh
+	echo sleep 1 >> /tmp/autofsck.sh
+	echo echo \"4\" \>\&2 >> /tmp/autofsck.sh
+	echo sleep 1 >> /tmp/autofsck.sh
+	echo echo \"3\" \>\&2 >> /tmp/autofsck.sh
+	echo sleep 1 >> /tmp/autofsck.sh
+	echo echo \"2\" \>\&2 >> /tmp/autofsck.sh
+	echo sleep 1 >> /tmp/autofsck.sh
+	echo echo \"1\" \>\&2 >> /tmp/autofsck.sh
+	echo sleep 1 >> /tmp/autofsck.sh
+	echo if \[ \$count -ge \$maxtries \]\; then >> /tmp/autofsck.sh
+	echo break\; >> /tmp/autofsck.sh
+	echo fi >> /tmp/autofsck.sh
+	echo count=\$\(\(\$count\+1\)\) >> /tmp/autofsck.sh
+	echo done >> /tmp/autofsck.sh
+done
+
+	#Add AutoFsck header.
+	echo clear >> /tmp/autofsck.sh
+	echo echo \"AutoFsck v2.5 - 20th September 2007\" \>\&2 >> /tmp/autofsck.sh
+	echo echo \"by Jonathan Musther - musther@gmail.com\" \>\&2 >> /tmp/autofsck.sh
+	echo echo \"Released under the GNU General Public License version 3 or later.\" \>\&2 >> /tmp/autofsck.sh
+	echo echo \"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --\" \>\&2 >> /tmp/autofsck.sh
+	echo echo \"AutoFsck will now run checks on your filesystems before\" \>\&2 >> /tmp/autofsck.sh
+	echo echo \"powering off your machine.  This may take some time.\" \>\&2 >> /tmp/autofsck.sh
+	echo echo \" \" \>\&2 >> /tmp/autofsck.sh
+
+#Now the filesystems have been mounted read only (hopefully), we can add the section for running fsck.
+echo if ! /bin/grep \'\^/dev/root\' /proc/mounts \| /usr/bin/cut -d\' \' -f4 \| /bin/grep \'\rw\'\; then >> /tmp/autofsck.sh
+#Loop to add script lines for filesystems that need checking.
+#MC = Mount count - MMC = Max Mount Count.
+#The line added here finally does the business of running fsck.
+#Any modifications to the fsck command can be made below at "echo /sbin/fsck -f -C $i" where
+#$i is the current filesystem.
+for i in $( mountread | grep --regexp="/dev/hd" --regexp="/dev/sd" ); do
+	echo echo \"Now checking $i\" >> /tmp/autofsck.sh
+	echo /sbin/fsck -f -C $i >> /tmp/autofsck.sh
+done
+
+#Finish off the script.
+echo else >> /tmp/autofsck.sh
+echo echo \"Unable to run fsck since partition is still mounted read-only\" \>\&2 >> /tmp/autofsck.sh
+echo fi >> /tmp/autofsck.sh
+
+#Remount / rw and delete the script.
+echo /bin/mount -no remount,rw / >> /tmp/autofsck.sh
+echo rm /etc/rc0.d/S80autofsck.sh >> /tmp/autofsck.sh
+echo exit >> /tmp/autofsck.sh
+
+#Put the script in rc0.d and make executable.
+mv /tmp/autofsck.sh /etc/rc0.d/S80autofsck.sh
+chmod a+x /etc/rc0.d/S80autofsck.sh
+exit
+
