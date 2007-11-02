@@ -85,12 +85,6 @@ if [ "$1" == "--set" ]; then
 	if [ "$?" = "1" ]; then
 		exit
 	fi
-	#Get the password for sudo:
-	gksudo -u root -k -m "Please enter your password to continue." echo
-	if [ "$?" != "0" ]; then
-		zenity --info --text "Cannot continue without the correct password, sorry." --title="AutoFsck - Error" --window-icon="/usr/share/pixmaps/autofsck.png"
-		exit
-	fi
 	#Find the partitions we need to change:
 	function mountread {
 		for i in $( mount | grep --regexp="/dev/hd" --regexp="/dev/sd" ); do
@@ -103,7 +97,7 @@ if [ "$1" == "--set" ]; then
 		sudo tune2fs $i -c $FREQ
 	done
 	#Confirm:
-	zenity --info --text "Your drives will now need checking after every $FREQ boots.  Enjoy :-)" --title="AutoFsck - Set Frequency" --window-icon="/usr/share/pixmaps/autofsck.png"
+	zenity --info --text "Your drives will now be checked after every $FREQ boots." --title="AutoFsck - Set Frequency" --window-icon="/usr/share/pixmaps/autofsck.png"
 	exit
 #	=================Done Setting Frequency=================
 fi
@@ -112,38 +106,26 @@ fi
 if [ "$1" == "--beep" ]; then
 #	=================Start Beep Change=================
 	#Find out if beep is currently active.
-	cat /etc/autofsck | grep ^beep
+	cat /etc/autofsckrc | grep ^beep
 	if [ "$?" == "0" ]; then
 		#Find out if user wants to disable it.
 		zenity --question --text "AutoFsck is currently set to produce an audible alert when the question dialogue appears, would you like to turn this feature off?" --title="AutoFsck - Set Beep" --window-icon="/usr/share/pixmaps/autofsck.png"
 		if [ "$?" = "0" ]; then
-			#If they do, get the password for sudo:
-			gksudo -u root -k -m "Please enter your password to continue." echo
-			if [ "$?" != "0" ]; then
-			zenity --info --text "Cannot continue without the correct password, sorry." --title="AutoFsck - Error" --window-icon="/usr/share/pixmaps/autofsck.png"
-			exit
-			fi
 			#Comment out the beep line.
-			sudo sed -i -e 's/^beep/#beep/' /etc/autofsck
-			zenity --info --text "AutoFsck's beep has been disabled, run 'AutoFsck --beep' again to enable it." --title="AutoFsck - Set Beep" --window-icon="/usr/share/pixmaps/autofsck.png"
+			sed -i -e 's/^beep/#beep/' /etc/autofsckrc
+			zenity --info --text "AutoFsck's beep has been disabled." --title="AutoFsck - Set Beep" --window-icon="/usr/share/pixmaps/autofsck.png"
 			exit
 		fi
 		exit
 	fi
-			cat /etc/autofsck | grep ^beep
+			cat /etc/autofsckrc | grep ^beep
 			if [ "$?" == "1" ]; then
 			#Find out if user wants to enable it.
 			zenity --question --text "Would you like AutoFsck to produce an audible alert when the question dialogue appears?" --title="AutoFsck - Set Beep" --window-icon="/usr/share/pixmaps/autofsck.png"
 			if [ "$?" = "0" ]; then
-			#If they do, get the password for sudo:
-			gksudo -u root -k -m "Please enter your password to continue." echo
-			if [ "$?" != "0" ]; then
-			zenity --info --text "Cannot continue without the correct password, sorry." --title="AutoFsck - Error" --window-icon="/usr/share/pixmaps/autofsck.png"
-			exit
-			fi
 			#Uncomment out the beep line.
-			sudo sed -i -e 's/^#beep/beep/' /etc/autofsck
-			zenity --info --text "AutoFsck's beep has been enabled, run 'AutoFsck --beep' again to disable it." --title="AutoFsck - Set Beep" --window-icon="/usr/share/pixmaps/autofsck.png"
+			sed -i -e 's/^#beep/beep/' /etc/autofsckrc
+			zenity --info --text "AutoFsck's beep has been enabled." --title="AutoFsck - Set Beep" --window-icon="/usr/share/pixmaps/autofsck.png"
 			exit
 			fi
 	fi
@@ -183,8 +165,8 @@ done
 if [ "$CHECK" = "0" ]; then #If no check required, exit.
 	exit
 fi				#If a check is required ask the user, then set up checks.
-#Find out if we should beep from the config file /etc/autofsck
-	cat /etc/autofsck | grep ^beep
+#Find out if we should beep from the config file /etc/autofsckrc
+	cat /etc/autofsckrc | grep ^beep
 	if [ "$?" == "0" ]; then
 		beep -f 523.25 -n -f 622.25 -l 100 -n -f 698.46 -n -f 739.99 -l 100 -n -f 783.99 -n -f 932.33 -l 100 -n -f 1046.5 -l 400&
 	fi
