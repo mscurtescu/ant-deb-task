@@ -3,14 +3,15 @@ Added support for KDM as well as GDM, AutoFsck is called from:
 /etc/gdm/PostSession/Default		GDM
 /etc/kde3/kdm/Xreset			KDM
 And the script is located:
-/usr/sbin/autofsck
+/usr/bin/autofsck
 A config file is found at:
-/etc/autofsck
+/etc/autofsckrc
 A .desktop file is also used for desktop integration to the GUI config tool.
 
 Also written in some sub-scripts, accessible via the command line options:
 --beep
 --set
+--sr
 --config
 --menu
 
@@ -19,6 +20,8 @@ when the dialogue appears.
 
 --set allows the user to easily set the frequency of the checks (it changes
 the 'max mount count' of all filesystems to a figure specified by the user).
+--sr allows the user to enable or disable checking the filesystems on shutdown
+rather than using the recommended method of rebooting the system.
 
 --config loads the configuration script which gives access to --beep and --set
 via a gui menu (provided by zenity).

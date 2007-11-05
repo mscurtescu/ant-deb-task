@@ -5,5 +5,7 @@ From the menu you have just seen, you can configure:
 
 2:  Whether there is an audible prompt when the dialogue asking to check your disks appears.  This is very useful as it is possible that when shutting down your computer, you may quickly turn off the monitor before the AutoFsck dialogue appears, or without noticing it.  If the audio prompt is on, you'll hear a short musical scale (C Blues) to prompt you, but some users may wish to disable this if they need a quiet environment.
 
+3:  Whether the checks are run on reboot (recommended) or shutdown.  The default (and recommended) time to run the checks is on reboot (the system is rebooted, the checks are run, and the system is then halted), but optionally the checks can be run directly on shutdown (the checks are run and the system halted, no reboot is used).  If the checks are run using the reboot method, information about the progress can be displayed, which it cannot if the checks are run on shutdown.  Another advantage is that checking after a reboot is more robust; sometimes fsck restarts the system multiple times in order to fix certain errors, using the reboot method the system is still halted at the end, whereas with the shutdown method it is possible that the machine will be left powered on.  The shutdown method is provided primarily for users who are prompted for a password by their machine's BIOS, other users should use the reboot method.
+
 AutoFsck was written by Jonathan Musther - jmusther@gmail.com
 http://wiki.ubuntu.com/AutoFsck

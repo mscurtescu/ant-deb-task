@@ -46,7 +46,7 @@ fi
 
 #	=================Start Menu GUI Section===================
 if [ "$1" == "--config" ]; then
-	SELECTION=$(zenity --list --text="Please select from the following options, and click ok:" "Disable / Enable Audible Prompt" "Set Frequency of Checks" "More Information / Help" --column="Menu:" --title="AutoFsck Configuration" --window-icon="/usr/share/pixmaps/autofsck.png")
+	SELECTION=$(zenity --list --text="Please select from the following options, and click ok:" "Disable / Enable Audible Prompt" "Set Frequency of Checks" "Check on Shutdown/Reboot?" "More Information / Help" --column="Menu:" --title="AutoFsck Configuration" --window-icon="/usr/share/pixmaps/autofsck.png")
 		if [ "$?" = "1" ]; then
 			exit
 		fi
@@ -57,6 +57,10 @@ if [ "$1" == "--config" ]; then
 		;;
 		"Set Frequency of Checks")
 			autofsck --set
+			exit
+		;;
+		"Check on Shutdown/Reboot?")
+			autofsck --sr
 			exit
 		;;
 		"More Information / Help")
@@ -133,6 +137,37 @@ exit
 #	=================End Beep Change=================
 fi
 
+#Now, what if they want to choose to check on halt/reboot:
+if [ "$1" == "--sr" ]; then
+#	=================Start Shutdown/Reboot Change=================
+	#Find out if check on halt is currently active.
+	cat /etc/autofsckrc | grep ^halt
+	if [ "$?" == "1" ]; then
+		#Find out if user wants to enable it.
+		zenity --question --text "AutoFsck is currently set to reboot in order to run the checks (recommended), would you like to run the check on shutdown instead?" --title="AutoFsck - Set Check Time" --window-icon="/usr/share/pixmaps/autofsck.png"
+		if [ "$?" = "0" ]; then
+			#Uncomment the halt line.
+			sed -i -e 's/^#halt/halt/' /etc/autofsckrc
+			zenity --info --text "Checks will now be run on shutdown." --title="AutoFsck - Set Check Time" --window-icon="/usr/share/pixmaps/autofsck.png"
+			exit
+		fi
+		exit
+	fi
+			cat /etc/autofsckrc | grep ^halt
+			if [ "$?" == "0" ]; then
+			#Find out if user wants to disable it.
+			zenity --question --text "AutoFsck is currently set to run the disk checks when shutting down, would you like to reboot the machine to run them instead (recommended)?" --title="AutoFsck - Set Check Time" --window-icon="/usr/share/pixmaps/autofsck.png"
+			if [ "$?" = "0" ]; then
+			#Comment out the halt line.
+			sed -i -e 's/^halt/#halt/' /etc/autofsckrc
+			zenity --info --text "In the future your machine will reboot in order to run disk checks." --title="AutoFsck - Set Check Time" --window-icon="/usr/share/pixmaps/autofsck.png"
+			exit
+			fi
+	fi
+exit
+#	=================End Shutdown/Reboot Change=================
+fi
+
 #========================Begin Main Script=========================
 if [ "$1" == "--check" ]; then
 #Basically this first section checks the mount command for mounted 
@@ -172,101 +207,78 @@ fi				#If a check is required ask the user, then set up checks.
 	fi
 zenity --question --text "One or more of your hard disks is signalling that it is due for checking.  If you are shutting down your computer, this could be a good time to run the checks.  If you are shutting down and would like to run the checks before your computer powers down, please click 'ok'.  If you do not want to run the checks now, please click cancel.  If you click cancel you will be prompted again next time you log out or shut down.  NOTE that if you click 'ok' your computer will check the drives before powering off, this may take some time - please ensure that your computer is not running on battery power." --title="AutoFsck" --window-icon="/usr/share/pixmaps/autofsck.png"
 if [ "$?" = "1" ]; then
-touch /fastboot		#If user says 'no', clean up from previous 'yes', create /fastboot and exit.
-rm /etc/rc0.d/S80autofsck.sh
+touch /fastboot		#If user says 'no', create /fastboot and exit.
 exit
 fi
+#========================== Check on halt ==========================
+	#If user says yes, set up for checks and then exit.
+	cat /etc/autofsckrc | grep ^halt
+	#Set up the check for shutdown if 'halt' specified.
+	if [ "$?" == "0" ]; then
+		touch /haltcheck
+		#Create script to delete /haltcheck on next boot:
+		touch /tmp/rmhaltcheck.sh
+			#Actually create the script
+			echo \#! /bin/sh >> /tmp/rmhaltcheck.sh
+			echo \# >> /tmp/rmhaltcheck.sh
+			echo \# This is a temporary script, it should not be >> /tmp/rmhaltcheck.sh
+			echo \# here while the system is in multi-user mode. >> /tmp/rmhaltcheck.sh
+			echo \# >> /tmp/rmhaltcheck.sh
+			echo rm /etc/init.d/rmhaltcheck.sh >> /tmp/rmhaltcheck.sh
+			echo rm /etc/rc2.d/S*rmhaltcheck.sh >> /tmp/rmhaltcheck.sh
+			echo rm /etc/rc3.d/S*rmhaltcheck.sh >> /tmp/rmhaltcheck.sh
+			echo rm /etc/rc4.d/S*rmhaltcheck.sh >> /tmp/rmhaltcheck.sh
+			echo rm /etc/rc5.d/S*rmhaltcheck.sh >> /tmp/rmhaltcheck.sh
+			echo rm /haltcheck >> /tmp/rmhaltcheck.sh
+		#Put the script in init.d and update-rc
+		mv /tmp/rmhaltcheck.sh /etc/init.d/rmhaltcheck.sh
+		chmod a+x /etc/init.d/rmhaltcheck.sh
+		update-rc.d rmhaltcheck.sh defaults
+		#Tidy up so that the script isn't run during shutdown
+		#but only during the subsequent boot.
+		rm /etc/rc0.d/K*rmhaltcheck.sh
+		rm /etc/rc1.d/K*rmhaltcheck.sh
+		rm /etc/rc2.d/K*rmhaltcheck.sh
+		rm /etc/rc3.d/K*rmhaltcheck.sh
+		rm /etc/rc4.d/K*rmhaltcheck.sh
+		rm /etc/rc5.d/K*rmhaltcheck.sh
+		rm /etc/rc6.d/K*rmhaltcheck.sh
+	exit
 
-#	======================BEGIN GENERATING SHUTDOWN SCRIPT======================
-	#The rest of this script is given over to creating the script to
-	#unmount filesystems, remount read-only and then run fsck.
-	#This is the script that does all the work, it will be placed in
-	#/etc/rc0.d/S80autofsck.sh so it will be run just before S90halt
-	#when all processes should have finished writing to the / filesystem.
-	#For creating purposes the script is placed in /tmp and then moved,
-	#here's the first part.
-	touch /fastboot		#This will ensure that no fsck is run on next boot.
-	touch /tmp/autofsck.sh
-	echo \#! /bin/sh >> /tmp/autofsck.sh
-	echo \# >> /tmp/autofsck.sh
-	echo \# This is a temporary script, it is part of AutoFsck and should >> /tmp/autofsck.sh
-	echo \# not \(in most cases\) be here while the system is in multi-user mode. >> /tmp/autofsck.sh
-	echo \# >> /tmp/autofsck.sh
-	
-	echo /bin/sync >> /tmp/autofsck.sh
-	
-	#For the next bit we use the same looping system as before to find the 
-	#filesystems so that we can fsck run on them, and then add lines to the 
-	#script we're building.
-	#The lines added below cause filesystems located by the loop to be
-	#remounted as read-only, which is what we need for fsck to run safely.
-	for i in $( mountread | grep --regexp="/dev/hd" --regexp="/dev/sd" ); do
-	#This little loop is added to the script we're building as many times as is
-	#needed to remount the filesystems read-only.
-		echo maxtries=2 >> /tmp/autofsck.sh
-		echo count=0 >> /tmp/autofsck.sh
-		echo while \! /bin/mount -no remount,ro $i\; do >> /tmp/autofsck.sh
-		echo clear >> /tmp/autofsck.sh
-		echo echo \"Unable to remount $i as read-only,\" \>\&2 >> /tmp/autofsck.sh
-		echo echo \"it has probably already been done.\" \>\&2 >> /tmp/autofsck.sh
-		echo echo \" \" \>\&2 >> /tmp/autofsck.sh
-		echo echo \"Retrying in...\" \>\&2 >> /tmp/autofsck.sh
-		echo echo \"5\" \>\&2 >> /tmp/autofsck.sh
-		echo sleep 1 >> /tmp/autofsck.sh
-		echo echo \"4\" \>\&2 >> /tmp/autofsck.sh
-		echo sleep 1 >> /tmp/autofsck.sh
-		echo echo \"3\" \>\&2 >> /tmp/autofsck.sh
-		echo sleep 1 >> /tmp/autofsck.sh
-		echo echo \"2\" \>\&2 >> /tmp/autofsck.sh
-		echo sleep 1 >> /tmp/autofsck.sh
-		echo echo \"1\" \>\&2 >> /tmp/autofsck.sh
-		echo sleep 1 >> /tmp/autofsck.sh
-		echo if \[ \$count -ge \$maxtries \]\; then >> /tmp/autofsck.sh
-		echo break\; >> /tmp/autofsck.sh
-		echo fi >> /tmp/autofsck.sh
-		echo count=\$\(\(\$count\+1\)\) >> /tmp/autofsck.sh
-		echo done >> /tmp/autofsck.sh
-	done
-	
-		#Add AutoFsck header.
-		echo clear >> /tmp/autofsck.sh
-		echo echo \"AutoFsck v3 - 29th October 2007\" \>\&2 >> /tmp/autofsck.sh
-		echo echo \"by Jonathan Musther - jmusther@gmail.com\" \>\&2 >> /tmp/autofsck.sh
-		echo echo \"Released under the GNU General Public License version 3 or later.\" \>\&2 >> /tmp/autofsck.sh
-		echo echo \"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --\" \>\&2 >> /tmp/autofsck.sh
-		echo echo \"AutoFsck will now run checks on your filesystems before\" \>\&2 >> /tmp/autofsck.sh
-		echo echo \"powering off your machine.  This may take some time.\" \>\&2 >> /tmp/autofsck.sh
-		echo echo \" \" \>\&2 >> /tmp/autofsck.sh
-	
-	#Now the filesystems have been mounted read only (hopefully), we can add the section for running fsck.
-	echo if ! /bin/grep \'\^/dev/root\' /proc/mounts \| /usr/bin/cut -d\' \' -f4 \| /bin/grep \'\rw\'\; then >> /tmp/autofsck.sh
-	#Loop to add script lines for filesystems that need checking.
-	#MC = Mount count - MMC = Max Mount Count.
-	#The line added here finally does the business of running fsck.
-	#Any modifications to the fsck command can be made below at "echo /sbin/fsck -f -C $i" where
-	#$i is the current filesystem.
-	for i in $( mountread | grep --regexp="/dev/hd" --regexp="/dev/sd" ); do
-		echo echo \"Now checking $i\" >> /tmp/autofsck.sh
-		echo /sbin/fsck -f -C $i >> /tmp/autofsck.sh
-	done
+	fi
 
-	#Finish off the script.
-	echo else >> /tmp/autofsck.sh
-	echo echo \"Unable to run fsck since partition is still mounted read-only\" \>\&2 >> /tmp/autofsck.sh
-	echo fi >> /tmp/autofsck.sh
-
-	#Remount / rw and delete the script.
-	echo /bin/mount -no remount,rw / >> /tmp/autofsck.sh
-	echo rm /etc/rc0.d/S80autofsck.sh >> /tmp/autofsck.sh
-
-	#Unmount / again, to leave things as we found them.
-	echo /bin/umount / >> /tmp/autofsck.sh
-	echo exit >> /tmp/autofsck.sh
-#	======================FINISH GENERATING SHUTDOWN SCRIPT======================
-
-#Put the script in rc0.d and make executable.
-mv /tmp/autofsck.sh /etc/rc0.d/S80autofsck.sh
-chmod a+x /etc/rc0.d/S80autofsck.sh
+#========================== Check on reboot ==========================
+	#If we're not expected to check on shutdown, but rather reboot
+	#create the file to force the check.
+	touch /forcefsck
+	#Now create the script which will cause halt after the check:
+	touch /tmp/postfsckhalt.sh
+		#Actually create the script
+		echo \#! /bin/sh >> /tmp/postfsckhalt.sh
+		echo \# >> /tmp/postfsckhalt.sh
+		echo \# This is a temporary script, it should not be >> /tmp/postfsckhalt.sh
+		echo \# here while the system is in multi-user mode. >> /tmp/postfsckhalt.sh
+		echo \# >> /tmp/postfsckhalt.sh
+		echo rm /etc/init.d/postfsckhalt.sh >> /tmp/postfsckhalt.sh
+		echo rm /etc/rc2.d/S*postfsckhalt.sh >> /tmp/postfsckhalt.sh
+		echo rm /etc/rc3.d/S*postfsckhalt.sh >> /tmp/postfsckhalt.sh
+		echo rm /etc/rc4.d/S*postfsckhalt.sh >> /tmp/postfsckhalt.sh
+		echo rm /etc/rc5.d/S*postfsckhalt.sh >> /tmp/postfsckhalt.sh
+		echo init 0 >> /tmp/postfsckhalt.sh
+	#Put the script in init.d and update-rc
+	mv /tmp/postfsckhalt.sh /etc/init.d/postfsckhalt.sh
+	chmod a+x /etc/init.d/postfsckhalt.sh
+	update-rc.d postfsckhalt.sh defaults
+	#Tidy up so that the script isn't run during shutdown
+	#but only during the subsequent boot.
+	rm /etc/rc0.d/K*postfsckhalt.sh
+	rm /etc/rc1.d/K*postfsckhalt.sh
+	rm /etc/rc2.d/K*postfsckhalt.sh
+	rm /etc/rc3.d/K*postfsckhalt.sh
+	rm /etc/rc4.d/K*postfsckhalt.sh
+	rm /etc/rc5.d/K*postfsckhalt.sh
+	rm /etc/rc6.d/K*postfsckhalt.sh
+exit
 fi
 
 #If none of the command line switches were specified, output usage info:
@@ -277,6 +289,7 @@ echo "Usage:"
 echo " $0 --help      this usage information"
 echo " $0 --set       easy setting of disk check frequency"
 echo " $0 --beep      enable/disable the audible prompt"
+echo " $0 --sr        decide whether checks are run on shutdown or reboot"
 echo " $0 --config    loads the graphical configuration script"
 echo " $0 --menu      as above but via gksu to get root password"
 echo " $0 --check     runs the main AutoFsck script (see below)"

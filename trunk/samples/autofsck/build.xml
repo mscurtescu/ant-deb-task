@@ -32,7 +32,7 @@
             postinst="local/postinst"
             prerm="local/prerm"
         >
-            <version upstream="${version}"/>
+            <version upstream="${version}" debian="${version.debian}"/>
             <maintainer name="Marius Scurtescu" email="ant.deb.task@gmail.com"/>
             <description synopsis="Ensures that the automatic disk checks will no longer inconvenience you">
 AutoFsck is a script which automates periodic disk checking in such a way that it no longer bothers the user at boot every 30-ish times, and is streamlined in a friendly graphical user interface.  Instead, when a check is required, the user is prompted at shutdown and given the option to run the checks before powering off the machine (this is unattended).  In this way AutoFsck ensures that the automatic disk check will no longer inconvenience you by making your boot times very long. 
