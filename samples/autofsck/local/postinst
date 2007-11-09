@@ -17,6 +17,7 @@ if [ "$1" = "configure" ] ; then
 /usr/bin/autofsck --check\n\
 # End-AutoFsck" -i /etc/kde3/kdm/Xreset
     fi
+    ln -s /etc/init.d/autofsck /etc/rc0.d/S85autofsck
 fi
 
 exit 0

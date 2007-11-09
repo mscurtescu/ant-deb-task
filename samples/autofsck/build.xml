@@ -47,6 +47,7 @@ https://wiki.ubuntu.com/AutoFsck
                 <include name="GUI-HELP"/>
             </tarfileset>
             <tarfileset file="local/autofsck.png" prefix="usr/share/pixmaps"/>
+            <tarfileset file="local/S85autofsck" fullpath="etc/init.d/autofsck"/>
             <tarfileset file="build/autofsck.desktop" prefix="usr/share/applications"/>
             <conffiles dir="local" prefix="etc" filemode="644">
                 <include name="autofsckrc"/>
