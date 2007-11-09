@@ -46,7 +46,7 @@ fi
 
 #	=================Start Menu GUI Section===================
 if [ "$1" == "--config" ]; then
-	SELECTION=$(zenity --list --text="Please select from the following options, and click ok:" "Disable / Enable Audible Prompt" "Set Frequency of Checks" "Check on Shutdown/Reboot?" "More Information / Help" --column="Menu:" --title="AutoFsck Configuration" --window-icon="/usr/share/pixmaps/autofsck.png")
+	SELECTION=$(zenity --list --height="300" --text="Please select from the following options, and click ok:" "Disable / Enable Audible Prompt" "Set Frequency of Checks" "Check on Shutdown/Reboot?" "Arrange Checks Now / Test" "More Information / Help" --column="Menu:" --title="AutoFsck Configuration" --window-icon="/usr/share/pixmaps/autofsck.png")
 		if [ "$?" = "1" ]; then
 			exit
 		fi
@@ -63,6 +63,10 @@ if [ "$1" == "--config" ]; then
 			autofsck --sr
 			exit
 		;;
+		"Arrange Checks Now / Test")
+			autofsck --test
+			exit
+		;;
 		"More Information / Help")
 			zenity --text-info --filename="/usr/share/doc/autofsck/GUI-HELP" --title="AutoFsck Help" --width="580" --height="500" --window-icon="/usr/share/pixmaps/autofsck.png"
 			autofsck --config
@@ -74,6 +78,91 @@ if [ "$1" == "--config" ]; then
 	esac
 fi
 #	=================End Menu GUI Section===================
+
+
+#Set up main function - setupfsck - which will prompt the user and set up the checks:
+function setupfsck {
+#Find out if we should beep from the config file /etc/autofsckrc
+	cat /etc/autofsckrc | grep ^beep
+	if [ "$?" == "0" ]; then
+		beep -f 523.25 -n -f 622.25 -l 100 -n -f 698.46 -n -f 739.99 -l 100 -n -f 783.99 -n -f 932.33 -l 100 -n -f 1046.5 -l 400&
+	fi
+zenity --question --text "One or more of your hard disks is signalling that it is due for checking.  If you are shutting down your computer, this could be a good time to run the checks.  If you are shutting down and would like to run the checks before your computer powers down, please click 'ok'.  If you do not want to run the checks now, please click cancel.  If you click cancel you will be prompted again next time you log out or shut down.  NOTE that if you click 'ok' your computer will check the drives before powering off, this may take some time - please ensure that your computer is not running on battery power." --title="AutoFsck" --window-icon="/usr/share/pixmaps/autofsck.png"
+if [ "$?" = "1" ]; then
+touch /fastboot		#If user says 'no', create /fastboot and exit.
+exit
+fi
+
+#========================== Check on halt ==========================
+	#If user says yes, set up for checks and then exit.
+	cat /etc/autofsckrc | grep ^halt
+	#Set up the check for shutdown if 'halt' specified.
+	if [ "$?" == "0" ]; then
+		touch /haltcheck
+		#Create script to delete /haltcheck on next boot:
+		touch /tmp/rmhaltcheck.sh
+			#Actually create the script
+			echo \#! /bin/sh >> /tmp/rmhaltcheck.sh
+			echo \# >> /tmp/rmhaltcheck.sh
+			echo \# This is a temporary script, it should not be >> /tmp/rmhaltcheck.sh
+			echo \# here while the system is in multi-user mode. >> /tmp/rmhaltcheck.sh
+			echo \# >> /tmp/rmhaltcheck.sh
+			echo rm /etc/init.d/rmhaltcheck.sh >> /tmp/rmhaltcheck.sh
+			echo rm /etc/rc2.d/S*rmhaltcheck.sh >> /tmp/rmhaltcheck.sh
+			echo rm /etc/rc3.d/S*rmhaltcheck.sh >> /tmp/rmhaltcheck.sh
+			echo rm /etc/rc4.d/S*rmhaltcheck.sh >> /tmp/rmhaltcheck.sh
+			echo rm /etc/rc5.d/S*rmhaltcheck.sh >> /tmp/rmhaltcheck.sh
+			echo rm /haltcheck >> /tmp/rmhaltcheck.sh
+		#Put the script in init.d and update-rc
+		mv /tmp/rmhaltcheck.sh /etc/init.d/rmhaltcheck.sh
+		chmod a+x /etc/init.d/rmhaltcheck.sh
+		update-rc.d rmhaltcheck.sh defaults
+		#Tidy up so that the script isn't run during shutdown
+		#but only during the subsequent boot.
+		rm /etc/rc0.d/K*rmhaltcheck.sh
+		rm /etc/rc1.d/K*rmhaltcheck.sh
+		rm /etc/rc2.d/K*rmhaltcheck.sh
+		rm /etc/rc3.d/K*rmhaltcheck.sh
+		rm /etc/rc4.d/K*rmhaltcheck.sh
+		rm /etc/rc5.d/K*rmhaltcheck.sh
+		rm /etc/rc6.d/K*rmhaltcheck.sh
+	exit
+
+	fi
+
+#========================== Check on reboot ==========================
+	#If we're not expected to check on shutdown, but rather reboot
+	#create the file to force the check.
+	touch /forcefsck
+	#Now create the script which will cause halt after the check:
+	touch /tmp/postfsckhalt.sh
+		#Actually create the script
+		echo \#! /bin/sh >> /tmp/postfsckhalt.sh
+		echo \# >> /tmp/postfsckhalt.sh
+		echo \# This is a temporary script, it should not be >> /tmp/postfsckhalt.sh
+		echo \# here while the system is in multi-user mode. >> /tmp/postfsckhalt.sh
+		echo \# >> /tmp/postfsckhalt.sh
+		echo rm /etc/init.d/postfsckhalt.sh >> /tmp/postfsckhalt.sh
+		echo rm /etc/rc2.d/S*postfsckhalt.sh >> /tmp/postfsckhalt.sh
+		echo rm /etc/rc3.d/S*postfsckhalt.sh >> /tmp/postfsckhalt.sh
+		echo rm /etc/rc4.d/S*postfsckhalt.sh >> /tmp/postfsckhalt.sh
+		echo rm /etc/rc5.d/S*postfsckhalt.sh >> /tmp/postfsckhalt.sh
+		echo init 0 >> /tmp/postfsckhalt.sh
+	#Put the script in init.d and update-rc
+	mv /tmp/postfsckhalt.sh /etc/init.d/postfsckhalt.sh
+	chmod a+x /etc/init.d/postfsckhalt.sh
+	update-rc.d postfsckhalt.sh defaults
+	#Tidy up so that the script isn't run during shutdown
+	#but only during the subsequent boot.
+	rm /etc/rc0.d/K*postfsckhalt.sh
+	rm /etc/rc1.d/K*postfsckhalt.sh
+	rm /etc/rc2.d/K*postfsckhalt.sh
+	rm /etc/rc3.d/K*postfsckhalt.sh
+	rm /etc/rc4.d/K*postfsckhalt.sh
+	rm /etc/rc5.d/K*postfsckhalt.sh
+	rm /etc/rc6.d/K*postfsckhalt.sh
+}
+
 
 if [ "$1" == "--set" ]; then
 	#This section updates the max mount count of the filesystems
@@ -199,86 +288,16 @@ done
 #Find out if check required and prompt user.
 if [ "$CHECK" = "0" ]; then #If no check required, exit.
 	exit
-fi				#If a check is required ask the user, then set up checks.
-#Find out if we should beep from the config file /etc/autofsckrc
-	cat /etc/autofsckrc | grep ^beep
-	if [ "$?" == "0" ]; then
-		beep -f 523.25 -n -f 622.25 -l 100 -n -f 698.46 -n -f 739.99 -l 100 -n -f 783.99 -n -f 932.33 -l 100 -n -f 1046.5 -l 400&
-	fi
-zenity --question --text "One or more of your hard disks is signalling that it is due for checking.  If you are shutting down your computer, this could be a good time to run the checks.  If you are shutting down and would like to run the checks before your computer powers down, please click 'ok'.  If you do not want to run the checks now, please click cancel.  If you click cancel you will be prompted again next time you log out or shut down.  NOTE that if you click 'ok' your computer will check the drives before powering off, this may take some time - please ensure that your computer is not running on battery power." --title="AutoFsck" --window-icon="/usr/share/pixmaps/autofsck.png"
-if [ "$?" = "1" ]; then
-touch /fastboot		#If user says 'no', create /fastboot and exit.
+fi				#If a check is required ask the user, then set up checks - using function setupfsck.
+setupfsck
 exit
 fi
-#========================== Check on halt ==========================
-	#If user says yes, set up for checks and then exit.
-	cat /etc/autofsckrc | grep ^halt
-	#Set up the check for shutdown if 'halt' specified.
-	if [ "$?" == "0" ]; then
-		touch /haltcheck
-		#Create script to delete /haltcheck on next boot:
-		touch /tmp/rmhaltcheck.sh
-			#Actually create the script
-			echo \#! /bin/sh >> /tmp/rmhaltcheck.sh
-			echo \# >> /tmp/rmhaltcheck.sh
-			echo \# This is a temporary script, it should not be >> /tmp/rmhaltcheck.sh
-			echo \# here while the system is in multi-user mode. >> /tmp/rmhaltcheck.sh
-			echo \# >> /tmp/rmhaltcheck.sh
-			echo rm /etc/init.d/rmhaltcheck.sh >> /tmp/rmhaltcheck.sh
-			echo rm /etc/rc2.d/S*rmhaltcheck.sh >> /tmp/rmhaltcheck.sh
-			echo rm /etc/rc3.d/S*rmhaltcheck.sh >> /tmp/rmhaltcheck.sh
-			echo rm /etc/rc4.d/S*rmhaltcheck.sh >> /tmp/rmhaltcheck.sh
-			echo rm /etc/rc5.d/S*rmhaltcheck.sh >> /tmp/rmhaltcheck.sh
-			echo rm /haltcheck >> /tmp/rmhaltcheck.sh
-		#Put the script in init.d and update-rc
-		mv /tmp/rmhaltcheck.sh /etc/init.d/rmhaltcheck.sh
-		chmod a+x /etc/init.d/rmhaltcheck.sh
-		update-rc.d rmhaltcheck.sh defaults
-		#Tidy up so that the script isn't run during shutdown
-		#but only during the subsequent boot.
-		rm /etc/rc0.d/K*rmhaltcheck.sh
-		rm /etc/rc1.d/K*rmhaltcheck.sh
-		rm /etc/rc2.d/K*rmhaltcheck.sh
-		rm /etc/rc3.d/K*rmhaltcheck.sh
-		rm /etc/rc4.d/K*rmhaltcheck.sh
-		rm /etc/rc5.d/K*rmhaltcheck.sh
-		rm /etc/rc6.d/K*rmhaltcheck.sh
+
+if [ "$1" == "--test" ]; then
+	setupfsck
+	rm /fastboot
+	zenity --info --text "Disk checks have now been arranged and will run when you shut down your computer." --title="AutoFsck" --window-icon="/usr/share/pixmaps/autofsck.png"
 	exit
-
-	fi
-
-#========================== Check on reboot ==========================
-	#If we're not expected to check on shutdown, but rather reboot
-	#create the file to force the check.
-	touch /forcefsck
-	#Now create the script which will cause halt after the check:
-	touch /tmp/postfsckhalt.sh
-		#Actually create the script
-		echo \#! /bin/sh >> /tmp/postfsckhalt.sh
-		echo \# >> /tmp/postfsckhalt.sh
-		echo \# This is a temporary script, it should not be >> /tmp/postfsckhalt.sh
-		echo \# here while the system is in multi-user mode. >> /tmp/postfsckhalt.sh
-		echo \# >> /tmp/postfsckhalt.sh
-		echo rm /etc/init.d/postfsckhalt.sh >> /tmp/postfsckhalt.sh
-		echo rm /etc/rc2.d/S*postfsckhalt.sh >> /tmp/postfsckhalt.sh
-		echo rm /etc/rc3.d/S*postfsckhalt.sh >> /tmp/postfsckhalt.sh
-		echo rm /etc/rc4.d/S*postfsckhalt.sh >> /tmp/postfsckhalt.sh
-		echo rm /etc/rc5.d/S*postfsckhalt.sh >> /tmp/postfsckhalt.sh
-		echo init 0 >> /tmp/postfsckhalt.sh
-	#Put the script in init.d and update-rc
-	mv /tmp/postfsckhalt.sh /etc/init.d/postfsckhalt.sh
-	chmod a+x /etc/init.d/postfsckhalt.sh
-	update-rc.d postfsckhalt.sh defaults
-	#Tidy up so that the script isn't run during shutdown
-	#but only during the subsequent boot.
-	rm /etc/rc0.d/K*postfsckhalt.sh
-	rm /etc/rc1.d/K*postfsckhalt.sh
-	rm /etc/rc2.d/K*postfsckhalt.sh
-	rm /etc/rc3.d/K*postfsckhalt.sh
-	rm /etc/rc4.d/K*postfsckhalt.sh
-	rm /etc/rc5.d/K*postfsckhalt.sh
-	rm /etc/rc6.d/K*postfsckhalt.sh
-exit
 fi
 
 #If none of the command line switches were specified, output usage info:

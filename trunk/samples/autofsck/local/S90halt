@@ -1,9 +1,0 @@
-#============ AutoFsck Section ============
-if [ -f /haltcheck ]; then
-    fsck -f -C
-fi
-if [ -f /forcefsck ]; then
-    init 6
-    exit
-fi
-#========== End AutoFsck Section ==========
