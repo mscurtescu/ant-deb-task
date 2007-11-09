@@ -26,9 +26,9 @@ shuts down.
 
 ----------Using Autofsck----------
 Every time you log out, the necessity of disk checking is evaluated, and if required
-you are prompted.  If you agree to the check, it is done via a quick reboot (or optionally
-on shutdown) and then the system is halted.  If you do not agree, the system is prevented
-from automatically checking the disks on next boot (in order not to inconvenience you).
+you are prompted.  If you agree to the check, it is done via a quick reboot or on shutdown,
+and then the system is then halted.  If you do not agree, the system is prevented from 
+automatically checking the disks on next boot (in order not to inconvenience you).
 
 To configure AutoFsck, either find the menu entry "Periodic Disk Checking" in the system
 or administration menu of your system, or press Alt+F2 and run:

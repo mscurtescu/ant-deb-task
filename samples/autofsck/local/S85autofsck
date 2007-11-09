@@ -1,0 +1,32 @@
+#! /bin/sh
+### BEGIN INIT INFO
+# Provides:          autofsck
+# Required-Start:    
+# Required-Stop:
+# Should-Start:      
+# Should-Stop:
+# Default-Start:     0
+# Default-Stop:
+# Short-Description: Set up disk checks
+# Description:
+### END INIT INFO
+
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+
+if [ -f /haltcheck ]; then
+	clear
+	echo "AutoFsck v3.0 - 6th November 2007"
+	echo "by Jonathan Musther - musther@gmail.com"
+	echo "Released under the GNU General Public License version 3 or later."
+	echo "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --"
+	echo "AutoFsck will now run checks on your filesystems before"
+	echo "powering off your machine.  This may take some time."
+	echo
+	fsck -f -C
+	exit
+fi
+if [ -f /forcefsck ]; then
+	init 6
+	exit
+fi
+exit
