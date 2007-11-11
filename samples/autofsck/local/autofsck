@@ -28,13 +28,6 @@
 #------------------SCRIPT STARTS--------------------
 #
 #
-#Firstly, let's see what command line option AutoFsck was run
-#with, --set --beep --config or --check (set the frequency of 
-#the checks, enable or diable the audible prompt, run the GUI
-#config or run the normal check).
-#
-#The layout of this script isn't exactly the neatest :-)
-
 #This quick section simply loads the config script with GKSU.
 #This way, when called from the menu, AutoFsck will be run
 #as root and further prompting for the password will not be
@@ -44,43 +37,175 @@ if [ "$1" == "--menu" ]; then
 	exit
 fi
 
+function menu {
 #	=================Start Menu GUI Section===================
-if [ "$1" == "--config" ]; then
 	SELECTION=$(zenity --list --height="300" --text="Please select from the following options, and click ok:" "Disable / Enable Audible Prompt" "Set Frequency of Checks" "Check on Shutdown/Reboot?" "Arrange Checks Now / Test" "More Information / Help" --column="Menu:" --title="AutoFsck Configuration" --window-icon="/usr/share/pixmaps/autofsck.png")
 		if [ "$?" = "1" ]; then
 			exit
 		fi
 	case "$SELECTION" in
 		"Disable / Enable Audible Prompt")
-			autofsck --beep
+			setbeep
+			menu
 			exit
 		;;
 		"Set Frequency of Checks")
-			autofsck --set
+			setfreq
+			menu
 			exit
 		;;
 		"Check on Shutdown/Reboot?")
-			autofsck --sr
+			setreboothalt
+			menu
 			exit
 		;;
 		"Arrange Checks Now / Test")
-			autofsck --test
+			testautofsck
 			exit
 		;;
 		"More Information / Help")
-			zenity --text-info --filename="/usr/share/doc/autofsck/GUI-HELP" --title="AutoFsck Help" --width="580" --height="500" --window-icon="/usr/share/pixmaps/autofsck.png"
-			autofsck --config
+			zenity --text-info --filename="/usr/share/doc/autofsck/GUI-HELP" --title="AutoFsck Help" --width="750" --height="550" --window-icon="/usr/share/pixmaps/autofsck.png"
+			menu
 			exit
 		;;
 		*)
 			exit
 		;;
 	esac
-fi
 #	=================End Menu GUI Section===================
+}
 
+function setfreq {
+	#This section updates the max mount count of the filesystems
+	#using tune2fs.
+#	=================Start Setting Frequency=================
+	#Ask the user if they want to continue:
+	zenity --question --text "This will alter the frequency with which your drives are checked by AutoFsck.  Do you wish to continue?" --title="AutoFsck - Set Frequency" --window-icon="/usr/share/pixmaps/autofsck.png"
+	if [ "$?" = "1" ]; then
+		menu
+		exit
+	fi
+	#Find out how often the user wants fsck (or AutoFsck) to run:
+	FREQ=$(zenity --entry --text="How often would you like to check your drives (in number of boots):" --title="AutoFsck - Set Frequency" --window-icon="/usr/share/pixmaps/autofsck.png") 
+	if [ "$?" = "1" ]; then
+		menu
+		exit
+	fi
+	#Find the partitions we need to change:
+	function mountread {
+		for i in $( mount | grep --regexp="/dev/hd" --regexp="/dev/sd" ); do
+			echo $i
+		done
+	}
+	#Loop to determine filesystems that need changing, and change them.
+	#MC = Mount count - MMC = Max Mount Count.
+	for i in $( mountread | grep --regexp="/dev/hd" --regexp="/dev/sd" ); do
+		sudo tune2fs $i -c $FREQ
+	done
+	#Confirm:
+	zenity --info --text "Your drives will now be checked after every $FREQ boots." --title="AutoFsck - Set Frequency" --window-icon="/usr/share/pixmaps/autofsck.png"
+	menu
+	exit
+#	=================Done Setting Frequency=================
+}
 
-#Set up main function - setupfsck - which will prompt the user and set up the checks:
+function setbeep {
+#	=================Start Beep Change=================
+	#Find out if beep is currently active.
+	cat /etc/autofsckrc | grep ^beep
+	if [ "$?" == "0" ]; then
+		#Find out if user wants to disable it.
+		zenity --question --text "AutoFsck is currently set to produce an audible alert when the question dialogue appears, would you like to turn this feature off?" --title="AutoFsck - Set Beep" --window-icon="/usr/share/pixmaps/autofsck.png"
+		if [ "$?" = "0" ]; then
+			#Comment out the beep line.
+			sed -i -e 's/^beep/#beep/' /etc/autofsckrc
+			zenity --info --text "AutoFsck's beep has been disabled." --title="AutoFsck - Set Beep" --window-icon="/usr/share/pixmaps/autofsck.png"
+			menu
+			exit
+		fi
+		menu
+		exit
+	fi
+			cat /etc/autofsckrc | grep ^beep
+			if [ "$?" == "1" ]; then
+			#Find out if user wants to enable it.
+			zenity --question --text "Would you like AutoFsck to produce an audible alert when the question dialogue appears?" --title="AutoFsck - Set Beep" --window-icon="/usr/share/pixmaps/autofsck.png"
+			if [ "$?" = "0" ]; then
+			#Uncomment out the beep line.
+			sed -i -e 's/^#beep/beep/' /etc/autofsckrc
+			zenity --info --text "AutoFsck's beep has been enabled." --title="AutoFsck - Set Beep" --window-icon="/usr/share/pixmaps/autofsck.png"
+			menu
+			exit
+			fi
+	fi
+menu
+exit
+#	=================End Beep Change=================
+}
+
+function setreboothalt {
+#	=================Start Shutdown/Reboot Change=================
+	#Find out if check on halt is currently active.
+	cat /etc/autofsckrc | grep ^halt
+	if [ "$?" == "1" ]; then
+		#Find out if user wants to enable it.
+		zenity --question --text "AutoFsck is currently set to reboot in order to run the checks (recommended), would you like to run the check on shutdown instead?" --title="AutoFsck - Set Check Time" --window-icon="/usr/share/pixmaps/autofsck.png"
+		if [ "$?" = "0" ]; then
+			#Uncomment the halt line.
+			sed -i -e 's/^#halt/halt/' /etc/autofsckrc
+			zenity --info --text "Checks will now be run on shutdown." --title="AutoFsck - Set Check Time" --window-icon="/usr/share/pixmaps/autofsck.png"
+			menu
+			exit
+		fi
+		menu
+		exit
+	fi
+			cat /etc/autofsckrc | grep ^halt
+			if [ "$?" == "0" ]; then
+			#Find out if user wants to disable it.
+			zenity --question --text "AutoFsck is currently set to run the disk checks when shutting down, would you like to reboot the machine to run them instead (recommended)?" --title="AutoFsck - Set Check Time" --window-icon="/usr/share/pixmaps/autofsck.png"
+			if [ "$?" = "0" ]; then
+			#Comment out the halt line.
+			sed -i -e 's/^halt/#halt/' /etc/autofsckrc
+			zenity --info --text "In the future your machine will reboot in order to run disk checks." --title="AutoFsck - Set Check Time" --window-icon="/usr/share/pixmaps/autofsck.png"
+			menu
+			exit
+			fi
+	fi
+menu
+exit
+#	=================End Shutdown/Reboot Change=================
+}
+
+function usage {
+echo "AutoFsck v3 - 29th October 2007"
+echo "by Jonathan Musther - jmusther@gmail.com"
+echo
+echo "Usage:"
+echo " $0 --help      this usage information"
+echo " $0 --set       easy setting of disk check frequency"
+echo " $0 --beep      enable/disable the audible prompt"
+echo " $0 --sr        decide whether checks are run on shutdown or reboot"
+echo " $0 --config    loads the graphical configuration script"
+echo " $0 --menu      as above but via gksu to get root password"
+echo " $0 --check     runs the main AutoFsck script (see below)"
+echo
+echo "AutoFsck is a script designed to move the automatic, periodic 'just in"
+echo "case' fsck - which usually runs on ext* filesystems at boot - to shutdown"
+echo "To achieve this AutoFsck should be run by your display manager (GDM or KDM)"
+echo "when you log out or shut down.  It then checks whether fsck is due to be"
+echo "run, and that being the case, prompts the user for permission to run"
+echo "the fsck on shutdown.  If the user declines, they will be prompted again"
+echo "next time AutoFsck is run."
+echo
+echo "AutoFsck is released in the hope that it will be useful, under"
+echo "the GNU General Public License version 3 or later."
+echo 
+echo "http://wiki.ubuntu.com/AutoFsck"
+echo
+exit
+}
+
 function setupfsck {
 #Find out if we should beep from the config file /etc/autofsckrc
 	cat /etc/autofsckrc | grep ^beep
@@ -92,7 +217,6 @@ if [ "$?" = "1" ]; then
 touch /fastboot		#If user says 'no', create /fastboot and exit.
 exit
 fi
-
 #========================== Check on halt ==========================
 	#If user says yes, set up for checks and then exit.
 	cat /etc/autofsckrc | grep ^halt
@@ -127,9 +251,7 @@ fi
 		rm /etc/rc5.d/K*rmhaltcheck.sh
 		rm /etc/rc6.d/K*rmhaltcheck.sh
 	exit
-
 	fi
-
 #========================== Check on reboot ==========================
 	#If we're not expected to check on shutdown, but rather reboot
 	#create the file to force the check.
@@ -163,109 +285,14 @@ fi
 	rm /etc/rc6.d/K*postfsckhalt.sh
 }
 
-
-if [ "$1" == "--set" ]; then
-	#This section updates the max mount count of the filesystems
-	#using tune2fs.
-#	=================Start Setting Frequency=================
-	#Ask the user if they want to continue:
-	zenity --question --text "This will alter the frequency with which your drives are checked by AutoFsck.  Do you wish to continue?" --title="AutoFsck - Set Frequency" --window-icon="/usr/share/pixmaps/autofsck.png"
-	if [ "$?" = "1" ]; then
-		exit
-	fi
-	#Find out how often the user wants fsck (or AutoFsck) to run:
-	FREQ=$(zenity --entry --text="How often would you like to check your drives (in number of boots):" --title="AutoFsck - Set Frequency" --window-icon="/usr/share/pixmaps/autofsck.png") 
-	if [ "$?" = "1" ]; then
-		exit
-	fi
-	#Find the partitions we need to change:
-	function mountread {
-		for i in $( mount | grep --regexp="/dev/hd" --regexp="/dev/sd" ); do
-			echo $i
-		done
-	}
-	#Loop to determine filesystems that need changing, and change them.
-	#MC = Mount count - MMC = Max Mount Count.
-	for i in $( mountread | grep --regexp="/dev/hd" --regexp="/dev/sd" ); do
-		sudo tune2fs $i -c $FREQ
-	done
-	#Confirm:
-	zenity --info --text "Your drives will now be checked after every $FREQ boots." --title="AutoFsck - Set Frequency" --window-icon="/usr/share/pixmaps/autofsck.png"
+function testautofsck {
+#	=================Test=================
+	setupfsck
+	rm /fastboot
+	zenity --info --text "Disk checks have now been arranged and will run when you shut down your computer." --title="AutoFsck" --window-icon="/usr/share/pixmaps/autofsck.png"
 	exit
-#	=================Done Setting Frequency=================
-fi
-
-#Now, what if they want to disable/enable the beep?
-if [ "$1" == "--beep" ]; then
-#	=================Start Beep Change=================
-	#Find out if beep is currently active.
-	cat /etc/autofsckrc | grep ^beep
-	if [ "$?" == "0" ]; then
-		#Find out if user wants to disable it.
-		zenity --question --text "AutoFsck is currently set to produce an audible alert when the question dialogue appears, would you like to turn this feature off?" --title="AutoFsck - Set Beep" --window-icon="/usr/share/pixmaps/autofsck.png"
-		if [ "$?" = "0" ]; then
-			#Comment out the beep line.
-			sed -i -e 's/^beep/#beep/' /etc/autofsckrc
-			zenity --info --text "AutoFsck's beep has been disabled." --title="AutoFsck - Set Beep" --window-icon="/usr/share/pixmaps/autofsck.png"
-			exit
-		fi
-		exit
-	fi
-			cat /etc/autofsckrc | grep ^beep
-			if [ "$?" == "1" ]; then
-			#Find out if user wants to enable it.
-			zenity --question --text "Would you like AutoFsck to produce an audible alert when the question dialogue appears?" --title="AutoFsck - Set Beep" --window-icon="/usr/share/pixmaps/autofsck.png"
-			if [ "$?" = "0" ]; then
-			#Uncomment out the beep line.
-			sed -i -e 's/^#beep/beep/' /etc/autofsckrc
-			zenity --info --text "AutoFsck's beep has been enabled." --title="AutoFsck - Set Beep" --window-icon="/usr/share/pixmaps/autofsck.png"
-			exit
-			fi
-	fi
-exit
-#	=================End Beep Change=================
-fi
-
-#Now, what if they want to choose to check on halt/reboot:
-if [ "$1" == "--sr" ]; then
-#	=================Start Shutdown/Reboot Change=================
-	#Find out if check on halt is currently active.
-	cat /etc/autofsckrc | grep ^halt
-	if [ "$?" == "1" ]; then
-		#Find out if user wants to enable it.
-		zenity --question --text "AutoFsck is currently set to reboot in order to run the checks (recommended), would you like to run the check on shutdown instead?" --title="AutoFsck - Set Check Time" --window-icon="/usr/share/pixmaps/autofsck.png"
-		if [ "$?" = "0" ]; then
-			#Uncomment the halt line.
-			sed -i -e 's/^#halt/halt/' /etc/autofsckrc
-			zenity --info --text "Checks will now be run on shutdown." --title="AutoFsck - Set Check Time" --window-icon="/usr/share/pixmaps/autofsck.png"
-			exit
-		fi
-		exit
-	fi
-			cat /etc/autofsckrc | grep ^halt
-			if [ "$?" == "0" ]; then
-			#Find out if user wants to disable it.
-			zenity --question --text "AutoFsck is currently set to run the disk checks when shutting down, would you like to reboot the machine to run them instead (recommended)?" --title="AutoFsck - Set Check Time" --window-icon="/usr/share/pixmaps/autofsck.png"
-			if [ "$?" = "0" ]; then
-			#Comment out the halt line.
-			sed -i -e 's/^halt/#halt/' /etc/autofsckrc
-			zenity --info --text "In the future your machine will reboot in order to run disk checks." --title="AutoFsck - Set Check Time" --window-icon="/usr/share/pixmaps/autofsck.png"
-			exit
-			fi
-	fi
-exit
-#	=================End Shutdown/Reboot Change=================
-fi
-
-#========================Begin Main Script=========================
-if [ "$1" == "--check" ]; then
-#Basically this first section checks the mount command for mounted 
-#partitions, /dev/sdX and /dev/hdX.  Then it checks the mount count 
-#and maximum mount count of each one, any which is nearly ready for 
-#checking causes $CHECK to be flagged to "1" and therefore starts 
-#the main user interactive bit of the script.
-
-CHECK="0"
+#	=================End Test=================
+}
 
 #Consolidate info about the filesystems, given by mount.
 function mountread {
@@ -274,6 +301,13 @@ function mountread {
 	done
 }
 
+function checkcount {
+#Basically this section checks the mount command for mounted 
+#partitions, /dev/sdX and /dev/hdX.  Then it checks the mount count 
+#and maximum mount count of each one, any which is nearly ready for 
+#checking causes $CHECK to be flagged to "1" and therefore starts 
+#the main user interactive bit of the script.
+CHECK="0"
 #Loop to determine filesystems that need checking.
 #MC = Mount count - MMC = Max Mount Count.
 for i in $( mountread | grep --regexp="/dev/hd" --regexp="/dev/sd" ); do
@@ -284,47 +318,35 @@ if [ "$MC" -ge "$MMC" ]; then
 	CHECK="1"
 fi
 done
-
 #Find out if check required and prompt user.
 if [ "$CHECK" = "0" ]; then #If no check required, exit.
 	exit
 fi				#If a check is required ask the user, then set up checks - using function setupfsck.
 setupfsck
 exit
-fi
+}
 
-if [ "$1" == "--test" ]; then
-	setupfsck
-	rm /fastboot
-	zenity --info --text "Disk checks have now been arranged and will run when you shut down your computer." --title="AutoFsck" --window-icon="/usr/share/pixmaps/autofsck.png"
+##################### FUNCTION CALLS #####################
+if [ "$1" == "--config" ]; then
+	menu
 	exit
 fi
 
-#If none of the command line switches were specified, output usage info:
-echo "AutoFsck v3 - 29th October 2007"
-echo "by Jonathan Musther - jmusther@gmail.com"
-echo
-echo "Usage:"
-echo " $0 --help      this usage information"
-echo " $0 --set       easy setting of disk check frequency"
-echo " $0 --beep      enable/disable the audible prompt"
-echo " $0 --sr        decide whether checks are run on shutdown or reboot"
-echo " $0 --config    loads the graphical configuration script"
-echo " $0 --menu      as above but via gksu to get root password"
-echo " $0 --check     runs the main AutoFsck script (see below)"
-echo
-echo "AutoFsck is a script designed to move the automatic, periodic 'just in"
-echo "case' fsck - which usually runs on ext* filesystems at boot - to shutdown"
-echo "To achieve this AutoFsck should be run by your display manager (GDM or KDM)"
-echo "when you log out or shut down.  It then checks whether fsck is due to be"
-echo "run, and that being the case, prompts the user for permission to run"
-echo "the fsck on shutdown.  If the user declines, they will be prompted again"
-echo "next time AutoFsck is run."
-echo
-echo "AutoFsck is released in the hope that it will be useful, under"
-echo "the GNU General Public License version 3 or later."
-echo 
-echo "http://wiki.ubuntu.com/AutoFsck"
-echo
+if [ "$1" == "--set" ]; then
+	setfreq
+	exit
+fi
+
+if [ "$1" == "--sr" ]; then
+	setreboothalt
+	exit
+fi
+
+if [ "$1" == "--check" ]; then
+	checkcount
+	exit
+fi
+
+usage
 exit
 
