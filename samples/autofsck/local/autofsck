@@ -212,7 +212,7 @@ function setupfsck {
 	if [ "$?" == "0" ]; then
 		beep -f 523.25 -n -f 622.25 -l 100 -n -f 698.46 -n -f 739.99 -l 100 -n -f 783.99 -n -f 932.33 -l 100 -n -f 1046.5 -l 400&
 	fi
-zenity --question --text "One or more of your hard disks is signalling that it is due for checking.  If you are shutting down your computer, this could be a good time to run the checks.  If you are shutting down and would like to run the checks before your computer powers down, please click 'ok'.  If you do not want to run the checks now, please click cancel.  If you click cancel you will be prompted again next time you log out or shut down.  NOTE that if you click 'ok' your computer will check the drives before powering off, this may take some time - please ensure that your computer is not running on battery power." --title="AutoFsck" --window-icon="/usr/share/pixmaps/autofsck.png"
+zenity --question --text "One or more of your hard disks is signalling that it is due for file system checking.\n\nIf you click 'Cancel' you will be prompted again next time you log out or shut down.\n\n'OK' to check your hard disks before your computer powers off.  This may take some time - please ensure that your computer is not running on battery power." --title="AutoFsck" --window-icon="/usr/share/pixmaps/autofsck.png"
 if [ "$?" = "1" ]; then
 touch /fastboot		#If user says 'no', create /fastboot and exit.
 exit
