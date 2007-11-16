@@ -22,7 +22,7 @@ if [ -f /haltcheck ]; then
 	echo "AutoFsck will now run checks on your filesystems before"
 	echo "powering off your machine.  This may take some time."
 	echo
-	fsck -f -C
+	fsck -f -C -y
 	exit
 fi
 if [ -f /forcefsck ]; then
