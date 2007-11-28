@@ -15,8 +15,8 @@ PATH=/usr/sbin:/usr/bin:/sbin:/bin
 
 if [ -f /haltcheck ]; then
 	clear
-	echo "AutoFsck v3.0 - 6th November 2007"
-	echo "by Jonathan Musther - musther@gmail.com"
+	echo "AutoFsck v3.1 - 27th November 2007"
+	echo "by Jonathan Musther - jmusther@gmail.com"
 	echo "Released under the GNU General Public License version 3 or later."
 	echo "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --"
 	echo "AutoFsck will now run checks on your filesystems before"

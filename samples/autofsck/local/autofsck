@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#	AutoFsck V2.6 by Jonathan Musther - 28th October 2007
+#	AutoFsck V3.1 by Jonathan Musther - 27th November 2007
 #
 #	The purpose of this script is to make checking your partitions using fsck
 #	simple, streamlined and convenient.  It will prompt you on shutdown / logout
@@ -39,7 +39,7 @@ fi
 
 function menu {
 #	=================Start Menu GUI Section===================
-	SELECTION=$(zenity --list --height="300" --text="Please select from the following options, and click ok:" "Disable / Enable Audible Prompt" "Set Frequency of Checks" "Check on Shutdown/Reboot?" "Arrange Checks Now / Test" "More Information / Help" --column="Menu:" --title="AutoFsck Configuration" --window-icon="/usr/share/pixmaps/autofsck.png")
+	SELECTION=$(zenity --list --height="300" --text="Please select from the following options, and click ok:" "Disable / Enable Audible Prompt" "Set Frequency of Checks" "Check on Shutdown or on Reboot?" "Arrange Checks Now" "More Information / Help" --column="Menu:" --title="AutoFsck Configuration" --window-icon="/usr/share/pixmaps/autofsck.png")
 		if [ "$?" = "1" ]; then
 			exit
 		fi
@@ -54,12 +54,12 @@ function menu {
 			menu
 			exit
 		;;
-		"Check on Shutdown/Reboot?")
+		"Check on Shutdown or on Reboot?")
 			setreboothalt
 			menu
 			exit
 		;;
-		"Arrange Checks Now / Test")
+		"Arrange Checks Now")
 			testautofsck
 			exit
 		;;
@@ -85,8 +85,12 @@ function setfreq {
 		menu
 		exit
 	fi
+
+	#If user has set the freq before, load this value from the config file:
+	PREVFREQ=$(cat /etc/autofsckrc | grep "^Freq:" | cut -d" " -f2)
+
 	#Find out how often the user wants fsck (or AutoFsck) to run:
-	FREQ=$(zenity --entry --text="How often would you like to check your drives (in number of boots):" --title="AutoFsck - Set Frequency" --window-icon="/usr/share/pixmaps/autofsck.png") 
+	FREQ=$(zenity --entry --text="How often would you like to check your drives (in number of boots):" --title="AutoFsck - Set Frequency" --entry-text=$PREVFREQ --window-icon="/usr/share/pixmaps/autofsck.png") 
 	if [ "$?" = "1" ]; then
 		menu
 		exit
@@ -102,6 +106,11 @@ function setfreq {
 	for i in $( mountread | grep --regexp="/dev/hd" --regexp="/dev/sd" ); do
 		sudo tune2fs $i -c $FREQ
 	done
+
+	#Save frequency selection to autofsckrc
+	sed -i -e /Freq/d /etc/autofsckrc	#Remove old frequency line
+	echo "Freq: $FREQ" >> /etc/autofsckrc	#Add current frequency line
+
 	#Confirm:
 	zenity --info --text "Your drives will now be checked after every $FREQ boots." --title="AutoFsck - Set Frequency" --window-icon="/usr/share/pixmaps/autofsck.png"
 	menu
@@ -178,7 +187,7 @@ exit
 }
 
 function usage {
-echo "AutoFsck v3 - 29th October 2007"
+echo "AutoFsck v3.1 - 27th November 2007"
 echo "by Jonathan Musther - jmusther@gmail.com"
 echo
 echo "Usage:"
@@ -215,6 +224,7 @@ function setupfsck {
 zenity --question --text "One or more of your hard disks is signalling that it is due for file system checking.\n\nIf you click 'Cancel' you will be prompted again next time you log out or shut down.\n\n'OK' to check your hard disks before your computer powers off.  This may take some time - please ensure that your computer is not running on battery power." --title="AutoFsck" --window-icon="/usr/share/pixmaps/autofsck.png"
 if [ "$?" = "1" ]; then
 touch /fastboot		#If user says 'no', create /fastboot and exit.
+killall autofsck 	#Kill any instance of autofsck to disable the timeout.
 exit
 fi
 #========================== Check on halt ==========================
@@ -250,6 +260,7 @@ fi
 		rm /etc/rc4.d/K*rmhaltcheck.sh
 		rm /etc/rc5.d/K*rmhaltcheck.sh
 		rm /etc/rc6.d/K*rmhaltcheck.sh
+	killall autofsck 	#Kill any instance of autofsck to disable the timeout.
 	exit
 	fi
 #========================== Check on reboot ==========================
@@ -283,6 +294,8 @@ fi
 	rm /etc/rc4.d/K*postfsckhalt.sh
 	rm /etc/rc5.d/K*postfsckhalt.sh
 	rm /etc/rc6.d/K*postfsckhalt.sh
+	killall autofsck 	#Kill any instance of autofsck to disable the timeout.
+	exit
 }
 
 function testautofsck {
@@ -321,9 +334,14 @@ done
 #Find out if check required and prompt user.
 if [ "$CHECK" = "0" ]; then #If no check required, exit.
 	exit
-fi				#If a check is required ask the user, then set up checks - using function setupfsck.
-setupfsck
-exit
+fi				#If a check is required ask the user, then set up checks - using function setupfsck, do this in the bg:
+setupfsck&
+TIMEOUTKILL=$!		#Store the PID of setupfsck
+#Now, in case the user doesn't see the prompt, we'll wait two minutes then tidy up, kill and exit.
+sleep 120s
+kill $TIMEOUTKILL	#Kill setupfsck
+touch /fastboot		#Create /fastboot to make sure check is not run on next boot.
+exit			#Then exit to allow shutdown to continue
 }
 
 ##################### FUNCTION CALLS #####################

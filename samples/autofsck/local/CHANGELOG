@@ -1,3 +1,13 @@
+----------Release Notes V3.1----------
+Minor new features:
+--Main dialogue times out after 2 mins to avoid leaving machine turned on.
+--Selected partitions check frequency is stored for future reference so 
+  that when the user changes the frequency in the future, their previous
+  selection is displayed first.
+
+Also changed a few bits of wording.
+
+
 ----------Release Notes V3.0----------
 Added support for KDM as well as GDM, AutoFsck is called from:
 /etc/gdm/PostSession/Default		GDM
@@ -32,6 +42,7 @@ required once.
 
 NOTE that for autofsck to run normally (do it's usual checks when the user logs
 out) it needs to be called with --check
+
 
 ----------Release Notes V2.5----------
 AutoFsck V2.0 uses the same method as AutoFsck v1 for checking the disks, but the
