@@ -16,6 +16,7 @@ if [ "$1" = "upgrade" ] ; then
     if [ -e /etc/kde3/kdm/Xreset ] ; then
         sed -e "/^# Start-AutoFsck/,/^# End-AutoFsck/d" -i /etc/kde3/kdm/Xreset
     fi
+    rm /etc/rc0.d/S85autofsck
 fi
 
 exit 0
