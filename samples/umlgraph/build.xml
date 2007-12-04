@@ -15,11 +15,18 @@
     
     <target name="dist" depends="untar" description="build the deb file">
         <mkdir dir="dist"/>
-        <copy file="build/UMLGraph-${version}/bin/umlgraph" todir="build">
-            <filterset begintoken=" " endtoken=" ">
-                <filter token="lib/UmlGraph.jar" value=" /usr/share/${package.name}/lib/UmlGraph.jar "/>
-            </filterset>
-        </copy>
+        <copy file="build/UMLGraph-${version}/bin/umlgraph" todir="build"/>
+        <replace file="build/umlgraph">
+            <replacefilter
+                token="UMLGRAPH_HOME=lib"
+                value="UMLGRAPH_HOME=/usr/share/${package.name}/lib&#10;JAVA_HOME=/usr/lib/jvm/java-6-sun"/>
+            <replacefilter
+                token="Tools.jar"
+                value="tools.jar"/>
+            <replacefilter
+                token="java -classpath"
+                value="$JAVA_HOME/jre/bin/java -classpath"/>
+        </replace>
         <deb
             todir="dist"
             package="${package.name}"
