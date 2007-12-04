@@ -11,7 +11,8 @@
     <target name="expand" description="expand downloaded packages">
         <mkdir dir="build"/>
         <untar src="download/${download.name}" dest="build" compression="gzip"/>
-        <unzip src="download/${download.doc.name}" dest="build"/>
+        <mkdir dir="build/${unzip.doc.name}"/>
+        <unzip src="download/${download.doc.name}" dest="build/${unzip.doc.name}"/>
     </target>
     
     <target name="prepare-bin" depends="expand">
@@ -60,13 +61,7 @@ http://groovy.codehaus.org/
             <tarfileset dir="build/${untar.name}/doc" prefix="usr/share/doc/${package.name}">
                 <include name="**"/>
             </tarfileset>
-            <tarfileset dir="download" prefix="usr/share/doc/${package.name}">
-                <include name="*.pdf"/>
-            </tarfileset>
-            <tarfileset dir="build/${unzip.doc.name}" prefix="usr/share/doc/${package.name}">
-                <include name="*.pdf"/>
-            </tarfileset>
-            <tarfileset dir="build/${unzip.doc.name}/GRAILS" prefix="usr/share/doc/${package.name}/html"/>
+            <tarfileset dir="build/${unzip.doc.name}" prefix="usr/share/doc/${package.name}/html"/>
         </deb>
     </target>
     

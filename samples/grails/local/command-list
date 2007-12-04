@@ -12,16 +12,12 @@ create-script
 create-service
 create-tag-lib
 create-unit-test
-create-webtest
+doc
 generate-all
 generate-controller
 generate-views
-generate-webtest
-get-dependencies
 help
 init
-install-dojo
-install-ivy
 install-plugin
 install-templates
 list-plugins
@@ -32,7 +28,6 @@ plugin-info
 release-plugin
 run-app
 run-app-https
-run-webtest
 set-proxy
 set-version
 shell
