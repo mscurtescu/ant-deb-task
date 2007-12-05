@@ -17,13 +17,11 @@ generate-all
 generate-controller
 generate-views
 help
-init
 install-plugin
 install-templates
 list-plugins
 package
 package-plugin
-package-plugins
 plugin-info
 release-plugin
 run-app

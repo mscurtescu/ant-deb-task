@@ -35,7 +35,7 @@
             section="devel"
             depends="${depends}"
         >
-            <version upstream="${version}"/>
+            <version upstream="${version}" debian="${version.debian}"/>
             <maintainer name="Marius Scurtescu" email="ant.deb.task@gmail.com"/>
             <description synopsis="an open-source web application framework that leverages  the Groovy language  and complements Java Web development.">
 Grails  aims to bring the "coding by convention" paradigm to  Groovy . It's an open-source web application framework that leverages  the Groovy language  and complements Java Web development. You can use Grails as a standalone development environment that hides all configuration details or integrate your Java business logic.
