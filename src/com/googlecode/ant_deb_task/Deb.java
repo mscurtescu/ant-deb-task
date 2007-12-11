@@ -490,7 +490,7 @@ public class Deb extends Task
             addFileToTar (controlTar, _postrm, "postrm", "755");
 
         if (_config != null)
-            addFileToTar (controlTar, _config, "config", "644");
+            addFileToTar (controlTar, _config, "config", "755");
 
         if (_templates != null)
             addFileToTar (controlTar, _templates, "templates", "644");
