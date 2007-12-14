@@ -1,0 +1,15 @@
+#!/bin/sh
+
+set -e
+
+if [ "$1" = "configure" ] ; then
+    ln -s /usr/share/scala/bin/fsc /usr/bin/
+    ln -s /usr/share/scala/bin/sbaz /usr/bin/
+    ln -s /usr/share/scala/bin/sbaz-setup /usr/bin/
+    ln -s /usr/share/scala/bin/scala /usr/bin/
+    ln -s /usr/share/scala/bin/scalac /usr/bin/
+    ln -s /usr/share/scala/bin/scaladoc /usr/bin/
+    ln -s /usr/share/scala/bin/scalap /usr/bin/
+fi
+
+exit 0
