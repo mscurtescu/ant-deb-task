@@ -1,0 +1,15 @@
+#!/bin/sh
+
+set -e
+
+if [ "$1" = "remove" ] || [ "$1" = "upgrade"] ; then
+    rm /usr/bin/fsc
+    rm /usr/bin/sbaz
+    rm /usr/bin/sbaz-setup
+    rm /usr/bin/scala
+    rm /usr/bin/scalac
+    rm /usr/bin/scaladoc
+    rm /usr/bin/scalap
+fi
+
+exit 0

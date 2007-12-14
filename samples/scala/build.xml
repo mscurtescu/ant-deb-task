@@ -1,0 +1,59 @@
+<project name="Java application deb packager" default="dist">
+
+    <property file="project.properties"/>
+
+    <path id="classpath">
+        <fileset dir="../../dist" includes="*.jar"/>
+    </path>
+
+    <taskdef resource="ant_deb_task.properties" classpathref="classpath"/>
+
+    <target name="untar" description="untar downloaded package">
+        <mkdir dir="build"/>
+        <untar src="download/${download.name}" dest="build" compression="gzip"/>
+    </target>
+    
+    <target name="dist" depends="untar" description="build the deb file">
+        <mkdir dir="dist"/>
+        <deb
+            todir="dist"
+            package="${package.name}"
+            section="devel"
+            depends="${depends}"
+            preinst="local/preinst"
+            postinst="local/postinst"
+            prerm="local/prerm"
+        >
+            <version upstream="${version}"/>
+            <maintainer name="Marius Scurtescu" email="ant.deb.task@gmail.com"/>
+            <description synopsis="The Scala Programming Language">
+Scala is a general purpose programming language designed to express common programming patterns in a concise, elegant, and type-safe way. It smoothly integrates features of object-oriented and functional languages. It is also fully interoperable with Java.
+
+http://www.scala-lang.org/
+            </description>
+            <tarfileset dir="build/${untar.name}" prefix="usr/share/${package.name}">
+                <exclude name="bin/**"/>
+                <exclude name="doc/**"/>
+                <exclude name="man/**"/>
+                <exclude name="misc/scala-tool-support/gentoo/**"/>
+                <exclude name="misc/scala-tool-support/textmate/**"/>
+                <exclude name="misc/scala-tool-support/xcode/**"/>
+            </tarfileset>
+            <tarfileset dir="build/${untar.name}/bin" prefix="usr/share/${package.name}/bin" filemode="755">
+                <exclude name="*.bat"/>
+            </tarfileset>
+            <tarfileset dir="build/${untar.name}/doc/scala-devel/scala" prefix="usr/share/doc/${package.name}"/>
+            <tarfileset dir="build/${untar.name}/doc/scala-documentation" prefix="usr/share/doc/${package.name}"/>
+            <tarfileset dir="build/${untar.name}/doc" prefix="usr/share/doc/${package.name}">
+                <include name="sbaz*"/>
+            </tarfileset>
+            <tarfileset dir="build/${untar.name}/man" prefix="usr/share/man"/>
+        </deb>
+    </target>
+    
+    <target name="clean" description="remove all work folders">
+        <delete dir="build"/>
+        <delete dir="dist"/>
+    </target>
+
+</project>
