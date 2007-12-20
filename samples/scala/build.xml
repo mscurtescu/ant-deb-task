@@ -24,7 +24,7 @@
             postinst="local/postinst"
             prerm="local/prerm"
         >
-            <version upstream="${version}"/>
+            <version upstream="${version}" debian="${version.debian}"/>
             <maintainer name="Marius Scurtescu" email="ant.deb.task@gmail.com"/>
             <description synopsis="The Scala Programming Language">
 Scala is a general purpose programming language designed to express common programming patterns in a concise, elegant, and type-safe way. It smoothly integrates features of object-oriented and functional languages. It is also fully interoperable with Java.
@@ -45,7 +45,8 @@ http://www.scala-lang.org/
             <tarfileset dir="build/${untar.name}/doc/scala-devel/scala" prefix="usr/share/doc/${package.name}"/>
             <tarfileset dir="build/${untar.name}/doc/scala-documentation" prefix="usr/share/doc/${package.name}"/>
             <tarfileset dir="build/${untar.name}/doc" prefix="usr/share/doc/${package.name}">
-                <include name="sbaz*"/>
+                <include name="sbaz/**"/>
+                <include name="sbaz-setup/**"/>
             </tarfileset>
             <tarfileset dir="build/${untar.name}/man" prefix="usr/share/man"/>
         </deb>
