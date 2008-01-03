@@ -233,6 +233,7 @@ fi
 	#Set up the check for shutdown if 'halt' specified.
 	if [ "$?" == "0" ]; then
 		touch /haltcheck
+		rm /fastboot
 		#Create script to delete /haltcheck on next boot:
 		touch /tmp/rmhaltcheck.sh
 			#Actually create the script
@@ -267,6 +268,7 @@ fi
 	#If we're not expected to check on shutdown, but rather reboot
 	#create the file to force the check.
 	touch /forcefsck
+	rm /fastboot
 	#Now create the script which will cause halt after the check:
 	touch /tmp/postfsckhalt.sh
 		#Actually create the script
