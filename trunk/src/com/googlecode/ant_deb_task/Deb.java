@@ -645,7 +645,7 @@ public class Deb extends Task
                         File parentFolder = targetFile.getParentFile () ;
                         while (parentFolder != null)
                         {
-                            String parentFolderPath = parentFolder.getPath ();
+                            String parentFolderPath = parentFolder.getPath ().replace(File.separatorChar, '/');
 
                             if (!existingDirs.contains (parentFolderPath) && !_dataFolders.contains (parentFolderPath))
                             {
