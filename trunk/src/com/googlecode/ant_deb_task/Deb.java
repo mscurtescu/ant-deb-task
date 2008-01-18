@@ -510,6 +510,8 @@ public class Deb extends Task
         controlFileSet.setFullpath (fullpath);
 
         controlFileSet.setFileMode (fileMode);
+        controlFileSet.setUserName ("root");
+        controlFileSet.setGroup ("root");
     }
 
     public void execute () throws BuildException
@@ -564,11 +566,17 @@ public class Deb extends Task
 
             targetFolderSet.setFile (_tempFolder);
             targetFolderSet.setFullpath (targetFolder);
+            targetFolderSet.setUserName ("root");
+            targetFolderSet.setGroup ("root");
         }
 
         // add actual data
-        for (int i = 0; i < _data.size (); i++)
-            dataTar.add ((TarFileSet) _data.get (i));
+        for (int i = 0; i < _data.size (); i++) {
+            TarFileSet data = (TarFileSet) _data.get (i);
+            data.setUserName ("root");
+            data.setGroup ("root");
+            dataTar.add (data);
+        }
 
         dataTar.execute ();
 
