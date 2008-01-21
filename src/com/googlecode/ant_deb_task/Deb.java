@@ -7,6 +7,7 @@ import org.apache.tools.ant.types.*;
 import java.io.*;
 import java.util.*;
 import java.util.regex.*;
+import java.util.zip.*;
 import java.security.MessageDigest;
 
 /**
@@ -173,6 +174,68 @@ public class Deb extends Task
             return buffer.toString ();
         }
     }
+    
+    public static class Changelog extends ProjectComponent 
+    {
+        public static class Format extends EnumeratedAttribute
+        {
+            public String[] getValues ()    
+            {
+                // XML format will be added when supported
+                return new String[] {"plain" /* , "xml" */};
+            }
+        }
+        
+        private static final String STANDARD_FILENAME = "changelog.gz";
+        private static final String DEBIAN_FILENAME = "changelog.Debian.gz";
+            
+        private String _file;
+        private Changelog.Format _format;
+        private boolean _debian;
+
+        public Changelog() 
+        {
+            _debian = false;
+            _format = new Changelog.Format();
+            _format.setValue("plain");
+        }
+
+        public void setFile (String file)
+        {
+            _file = file.trim ();
+        }
+
+        public String getFile() 
+        {
+            return _file;
+        }
+            
+        public void setFormat (Changelog.Format format)
+        {
+            _format = format;
+        }
+
+        public Changelog.Format getFormat() 
+        {
+            return _format;
+        }
+
+        public void setDebian (boolean debian) 
+        {
+            _debian = debian;
+        }
+
+        public boolean isDebian () 
+        {
+            return _debian;
+        }
+
+        public String getTargetFilename ()
+        {
+            return _debian ? DEBIAN_FILENAME : STANDARD_FILENAME;
+        }
+    }
+    
     public static class Section extends EnumeratedAttribute
     {
         private static final String[] PREFIXES = new String[] {"", "contrib/", "non-free/"};
@@ -228,6 +291,7 @@ public class Deb extends Task
     private Deb.Description _description;
 
     private Set _conffiles = new HashSet ();
+    private Set _changelogs = new HashSet ();
     private List _data = new ArrayList();
 
     private File _preinst;
@@ -355,6 +419,11 @@ public class Deb extends Task
         _data.add (conffiles);
     }
 
+    public void addChangelog(Deb.Changelog changelog)
+    {
+        _changelogs.add (changelog);
+    }
+    
     public void addDescription (Deb.Description description)
     {
         _description = description;
@@ -526,6 +595,7 @@ public class Deb extends Task
 
             _tempFolder = createTempFolder();
 
+            processChangelogs ();
             scanData ();
             
             File debFile = new File (_toDir, _package + "_" + _version + "_" + _architecture + ".deb");
@@ -743,4 +813,69 @@ public class Deb extends Task
             throw new BuildException(e);
         }
     }
+    
+    private void processChangelogs() throws IOException 
+    {
+        for (Iterator iter = _changelogs.iterator (); iter.hasNext (); )
+        {
+            processChangelog ((Deb.Changelog) iter.next ());
+        }
+    }
+    
+    private void processChangelog (Deb.Changelog changelog) throws IOException 
+    {     
+        // Compress file
+        File file = new File(changelog.getFile ()); 
+        File temp = File.createTempFile ("changelog", ".gz");
+        gzip(file, temp, Deflater.BEST_COMPRESSION, GZipOutputStream.FS_UNIX);
+        
+        // Determine path
+        StringBuffer path = new StringBuffer ("usr/share/doc/");
+        path.append (_package).append ('/');
+        path.append (changelog.getTargetFilename ());
+        
+        // Add file to data
+        TarFileSet fileSet = new TarFileSet ();
+        fileSet.setProject (getProject ());
+        fileSet.setFullpath (path.toString ());
+        fileSet.setFile (temp);
+        fileSet.setFileMode ("0644");
+        _data.add (fileSet);
+    }
+
+    private static void gzip (File input, File output, int level, byte fileSystem) 
+        throws IOException
+    {
+        GZipOutputStream out = null;
+        InputStream in = null;
+        
+        try 
+        {
+            out = new GZipOutputStream (new FileOutputStream (output), level);
+            out.setFileSystem (fileSystem);
+            
+            in = new FileInputStream(input);
+            byte[] buffer = new byte[8 * 1024];
+            
+            int len;
+            while ((len = in.read (buffer, 0, buffer.length)) > 0) 
+            {
+                out.write(buffer, 0, len);   
+            }
+            
+            out.finish ();
+        }
+        finally 
+        {
+            if (in != null) 
+            {
+                in.close ();
+            }
+            
+            if (out != null)
+            {
+                out.close ();
+            }
+        }
+    };
 }
