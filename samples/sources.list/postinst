@@ -1,0 +1,10 @@
+#!/bin/sh
+
+set -e
+
+if [ "$1" = "configure" ] ; then
+    apt-key add /usr/share/avant-window-navigator-sources-list/avant-window-navigator.asc
+    #apt-get update
+fi
+
+exit 0

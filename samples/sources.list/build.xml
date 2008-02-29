@@ -1,0 +1,44 @@
+<project name="apt sources.list deb packager" default="dist">
+
+    <property file="project.properties"/>
+
+    <path id="classpath">
+        <fileset dir="../../dist" includes="*.jar"/>
+    </path>
+
+    <taskdef resource="ant_deb_task.properties" classpathref="classpath"/>
+    
+    <target name="download-key" description="downloads the asc file with the signing key">
+        <mkdir dir="build"/>
+        <get src="${key.url}" dest="build/${package.base.name}.asc"/>
+    </target>
+    
+    <target name="dist" depends="download-key" description="build the deb file">
+        <mkdir dir="dist"/>
+        <deb
+            todir="dist"
+            package="${package.name}"
+            section="utils"
+            depends="${depends}"
+            postinst="postinst"
+            prerm="prerm"
+            postrm="postrm"
+        >
+            <version upstream="${version}" debian="${version.debian}"/>
+            <maintainer name="Marius Scurtescu" email="ant.deb.task@gmail.com"/>
+            <description synopsis="apt sources.list for ${package.title}">
+Installs the repositories needed by ${package.title}.
+
+Signing keys are also installed.
+            </description>
+            <tarfileset file="${package.base.name}.list" prefix="etc/apt/sources.list.d"/>
+            <tarfileset file="build/${package.base.name}.asc" prefix="usr/share/${package.name}"/>
+        </deb>
+    </target>
+    
+    <target name="clean" description="remove all work folders">
+        <delete dir="build"/>
+        <delete dir="dist"/>
+    </target>
+
+</project>
