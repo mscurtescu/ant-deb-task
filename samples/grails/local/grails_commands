@@ -1,11 +1,28 @@
 # Linux grails(8) completion
 #
-_grails()
-{
-	local cur
-	COMPREPLY=()
-	cur=${COMP_WORDS[COMP_CWORD]}
-	COMPREPLY=( $(compgen -W '$(cat /usr/share/grails/command-list)'  -- $cur))
-	return 0
-} &&
+#
+# Script originally created by Ted Naleid
+# http://tednaleid.wordpress.com/2008/03/25/autocomplete-grails-script-names-in-bashzsh/
+
+_grailsscripts() {
+	SCRIPT_DIRS="/usr/share/grails/scripts ./scripts ~/.grails/scripts"
+    
+	if [ -d plugins ] ; then
+        for PLUGIN_DIR in $(ls -d ./plugins/*/scripts 2> /dev/null); do
+		    SCRIPT_DIRS="$SCRIPT_DIRS $PLUGIN_DIR"
+		done
+	fi
+    
+	for D in $SCRIPT_DIRS; do
+		if [ -d $D ] ; then
+            ls -1 $D/*.groovy 2> /dev/null | sed -e 's/.*\/\(.*\)\.groovy/\1/' | sed -e 's/\([A-Z]\)/-\1/g' | sed -e 's/^-//' | tr "[:upper:]" "[:lower:]"
+		fi
+	done | sort | uniq | grep -vE "^_"
+}
+
+_grails() {
+	COMPREPLY=( $(compgen -W "$(_grailsscripts)" -- ${COMP_WORDS[COMP_CWORD]}) )
+}
+
 complete -F _grails grails
+
