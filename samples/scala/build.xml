@@ -43,7 +43,7 @@ http://www.scala-lang.org/
                 <exclude name="*.bat"/>
             </tarfileset>
             <tarfileset dir="build/${untar.name}/doc/scala-devel/scala" prefix="usr/share/doc/${package.name}"/>
-            <tarfileset dir="build/${untar.name}/doc/scala-documentation" prefix="usr/share/doc/${package.name}"/>
+<!--            <tarfileset dir="build/${untar.name}/doc/scala-documentation" prefix="usr/share/doc/${package.name}"/> -->
             <tarfileset dir="build/${untar.name}/doc" prefix="usr/share/doc/${package.name}">
                 <include name="sbaz/**"/>
                 <include name="sbaz-setup/**"/>
