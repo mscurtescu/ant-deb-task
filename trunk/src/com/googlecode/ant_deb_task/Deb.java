@@ -641,10 +641,16 @@ public class Deb extends Task
         }
 
         // add actual data
-        for (int i = 0; i < _data.size (); i++) {
+        for (int i = 0; i < _data.size (); i++)
+        {
             TarFileSet data = (TarFileSet) _data.get (i);
-            data.setUserName ("root");
-            data.setGroup ("root");
+
+            if (data.getUserName() == null || data.getUserName().trim().length() == 0)
+                data.setUserName ("root");
+
+            if (data.getGroup() == null || data.getGroup().trim().length() == 0)
+                data.setGroup ("root");
+
             dataTar.add (data);
         }
 
@@ -877,5 +883,5 @@ public class Deb extends Task
                 out.close ();
             }
         }
-    };
+    }
 }
