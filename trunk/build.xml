@@ -17,6 +17,7 @@
         />
         <copy todir="build/classes">
             <fileset dir="src" includes="**/*.properties"/>
+            <fileset dir="src" includes="**/*.xml"/>
         </copy>
     </target>
 
