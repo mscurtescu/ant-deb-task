@@ -9,6 +9,7 @@ There are two Ant tasks provided, on to create the actual debian packages and a 
 
 == Attributes ==
 
+  * *debFilenameProperty*
   * *toDir*
   * *package*
   * *version*
