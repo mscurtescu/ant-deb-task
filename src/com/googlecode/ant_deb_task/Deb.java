@@ -810,6 +810,8 @@ public class Deb extends Task
                 md5.update (buffer, 0, read);
             }
 
+            inputStream.close();
+            
             byte[] md5Bytes = md5.digest ();
             StringBuffer md5Buffer = new StringBuffer (md5Bytes.length * 2);
             for (int i = 0; i < md5Bytes.length; i++)
