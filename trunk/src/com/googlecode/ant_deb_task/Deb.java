@@ -274,6 +274,8 @@ public class Deb extends Task
     
     private File _toDir;
 
+    private String _debFilenameProperty = "";
+
     private String _package;
     private String _version;
     private Deb.Version _versionObj;
@@ -318,6 +320,11 @@ public class Deb extends Task
     public void setToDir (File toDir)
     {
         _toDir = toDir;
+    }
+
+    public void setDebFilenameProperty(String debFilenameProperty)
+    {
+        _debFilenameProperty = debFilenameProperty.trim();
     }
 
     public void setPackage (String packageName)
@@ -606,6 +613,9 @@ public class Deb extends Task
 
             log ("Writing deb file to: " + debFile.getAbsolutePath());
             BuildDeb.buildDeb (debFile, masterControlFile, dataFile);
+
+            if (_debFilenameProperty.length() > 0)
+                getProject().setProperty(_debFilenameProperty, debFile.getAbsolutePath());
 
             masterControlFile.delete ();
             dataFile.delete ();
