@@ -2,10 +2,20 @@
 
 = Introduction =
 
-There are two Ant tasks provided, on to create the actual debian packages and a helper task to create desktop entries.
-
+There are two Ant tasks provided.
+The "deb"-task itself is used to create debian packages and the "desktopEntry"-task is used to create desktop entries.
 
 = deb Task =
+
+== Task definition in your build file ==
+To use the deb task, you will have to define it in your build file. This is done by following code:
+{{{
+    <path id="ant-deb.classpath">
+        <fileset dir="enterHereYourDirectoryPathTo_ant-deb.jar" includes="*.jar"/>
+    </path>
+
+    <taskdef name="deb" classname="com.googlecode.ant_deb_task.Deb" classpathref="ant-deb.classpath"/>
+}}}
 
 == Attributes ==
 
