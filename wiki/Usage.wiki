@@ -59,6 +59,16 @@ To use the deb task, you will have to define it in your build file. This is done
 
 = desktopEntry Task =
 
+== Task definition in your build file ==
+To use the desktopEntry task, you will have to define it in your build file. This is done by following code:
+{{{
+    <path id="ant-deb.classpath">
+        <fileset dir="enterHereYourDirectoryPathTo_ant-deb.jar" includes="*.jar"/>
+    </path>
+
+    <taskdef name="desktopEntry" classname="com.googlecode.ant_deb_task.DesktopEntry" classpathref="ant-deb.classpath"/>
+}}}
+
 == Attributes ==
 
   * *toFile*
