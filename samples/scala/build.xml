@@ -11,6 +11,10 @@
     <target name="untar" description="untar downloaded package">
         <mkdir dir="build"/>
         <untar src="download/${download.name}" dest="build" compression="gzip"/>
+        <mkdir dir="build/sources"/>
+        <untar src="download/${download.sources.name}" dest="build/sources" compression="gzip"/>
+        <mkdir dir="build"/>
+        <untar src="download/${download.api.name}" dest="build" compression="gzip"/>
     </target>
     
     <target name="dist" depends="untar" description="build the deb file">
@@ -37,13 +41,19 @@ http://www.scala-lang.org/
                 <exclude name="man/**"/>
                 <exclude name="misc/scala-tool-support/gentoo/**"/>
                 <exclude name="misc/scala-tool-support/textmate/**"/>
+                <exclude name="misc/scala-tool-support/textwrangler/**"/>
                 <exclude name="misc/scala-tool-support/xcode/**"/>
             </tarfileset>
             <tarfileset dir="build/${untar.name}/bin" prefix="usr/share/${package.name}/bin" filemode="755">
                 <exclude name="*.bat"/>
             </tarfileset>
-            <tarfileset dir="build/${untar.name}/doc/scala-devel/scala" prefix="usr/share/doc/${package.name}"/>
-<!--            <tarfileset dir="build/${untar.name}/doc/scala-documentation" prefix="usr/share/doc/${package.name}"/> -->
+            <tarfileset dir="build/${untar.sources.name}/docs" prefix="usr/share/doc/${package.name}">
+                <include name="examples/**"/>
+                <include name="README"/>
+                <include name="TODO"/>
+                <include name="LICENSE"/>
+            </tarfileset>
+            <tarfileset dir="build/${untar.api.name}" prefix="usr/share/doc/${package.name}/api"/>
             <tarfileset dir="build/${untar.name}/doc" prefix="usr/share/doc/${package.name}">
                 <include name="sbaz/**"/>
                 <include name="sbaz-setup/**"/>
