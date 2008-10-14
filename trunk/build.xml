@@ -1,4 +1,4 @@
-<project name="JavaDeb Task" basedir="." default="dist">
+<project name="JavaDeb Task" basedir="." default="release-dist">
 
     <path id="classpath">
         <pathelement location="build/classes"/>
@@ -42,17 +42,77 @@
         </antTasksDocText>
     </target>
 
-    <target name="jar" depends="compile" description="Package compiled classes into a jar">
+    <!-- - - - - - - - - - - - - - - - - - 
+          private target: jar                      
+         - - - - - - - - - - - - - - - - - -->
+	<property name="antdeb.name" value="ant-deb"/>
+    <target name="jar" depends="compile">
+    	<description>Package compiled classes into a jar</description>
         <jar
             basedir="build/classes"
-            destfile="build/ant-deb.jar"/>
+            destfile="build/${antdeb.name}.jar"/>
+    </target>
+	
+	<!-- - - - - - - - - - - - - - - - - - 
+          private target: examples                      
+         - - - - - - - - - - - - - - - - - -->
+    <property name="examples.name" value="examples"/>
+    <property name="targz" value="tar.gz"/>
+	<target name="examples" depends="jar">
+    	<description>create a zip with the examples</description>
+		<tar destfile="build/${examples.name}.${targz}">
+			<tarfileset dir="samples" includes="**/*"/>
+		</tar>
     </target>
 
-    <target name="dist" depends="jar" description="Generate and package all distributables">
+	<!-- ================================= 
+          public target: release-dist
+         ================================= -->
+    <target name="release-dist" depends="dist" description="Release all distribution files">
+        <input addproperty="dist.version.number" message="Please enter a version number for your distribution" defaultvalue="0.0.1" />
+    	<move file="dist/${examples.name}.${targz}" tofile="dist/${examples.name}-${dist.version.number}.${targz}"></move>
+    	<move file="dist/${antdeb.name}.jar" tofile="dist/${antdeb.name}-${dist.version.number}.jar"/>
+    	<antcall target="createdeb"></antcall>
+    </target>
+	
+    <!-- ================================= 
+          public target: dist              
+         ================================= -->
+    <target name="dist" depends="clean, jar, examples" description="Generate and package all distributables">
         <mkdir dir="dist"/>
-        <copy file="build/ant-deb.jar" todir="dist"/>
+        <copy file="build/${antdeb.name}.jar" todir="dist"/>
+    	<copy file="build/${examples.name}.${targz}" todir="dist"/>
     </target>
 
+	<!-- - - - - - - - - - - - - - - - - - 
+          private target: createdeb                      
+         - - - - - - - - - - - - - - - - - -->
+    <target name="createdeb" depends="define_tasks">
+    	<description>create a debian package of the ant deb task</description>
+    	<property name="package.name" value="ant-deb-task"/>
+        <deb
+            todir="dist"
+            package="${package.name}"
+            version="${dist.version.number}"
+            section="devel"
+            depends="sun-java5-jre | sun-java6-jre, ant">
+            <version upstream="${dist.version.number}"/>
+        	<maintainer name="Darko Palic" email="darko.palic@googlemail.com"/>
+            <description synopsis="Optional Ant task for creating deb-packages">
+                This optional ant task provides traget to create desktop entries and debian packages (.deb files) of a java project.
+            </description>
+            <tarfileset dir="${basedir}/doc" prefix="usr/share/doc/${package.name}">
+                <include name="**"/>
+            </tarfileset>
+            <tarfileset dir="${basedir}" prefix="usr/share/doc/${package.name}">
+            	<include name="LICENSE"/>
+            </tarfileset>
+            <tarfileset dir="${basedir}/dist" prefix="usr/share/${package.name}">
+                <include name="*.jar"/>
+            </tarfileset>        	
+        </deb>
+    </target>
+	
     <target name="define_tasks" depends="compile">
         <taskdef name="desktopEntry" classname="com.googlecode.ant_deb_task.DesktopEntry" classpathref="classpath"/>
         <taskdef name="deb" classname="com.googlecode.ant_deb_task.Deb" classpathref="classpath"/>
@@ -96,8 +156,8 @@
     </target>
 
     <target name="clean" description="Clean work folders">
-        <delete dir="build"/>
-        <delete dir="dist"/>
+        <delete dir="build" verbose="true"/>
+        <delete dir="dist" verbose="true"/>
     </target>
 
 </project>
