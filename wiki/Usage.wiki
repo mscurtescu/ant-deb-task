@@ -11,11 +11,13 @@ The "deb"-task itself is used to create debian packages and the "desktopEntry"-t
 To use the deb task, you will have to define it in your build file. This is done by following code:
 {{{
     <path id="ant-deb.classpath">
-        <fileset dir="enterHereYourDirectoryPathTo_ant-deb.jar" includes="*.jar"/>
+        <fileset dir="enterHereYourDirectoryPathTo_ant-deb-{version}.jar" includes="*.jar"/>
     </path>
 
     <taskdef name="deb" classname="com.googlecode.ant_deb_task.Deb" classpathref="ant-deb.classpath"/>
 }}}
+
+Here you can find the ant-deb-{version}.jar http://code.google.com/p/ant-deb-task/downloads/list
 
 == Attributes ==
 
@@ -68,6 +70,8 @@ To use the desktopEntry task, you will have to define it in your build file. Thi
 
     <taskdef name="desktopEntry" classname="com.googlecode.ant_deb_task.DesktopEntry" classpathref="ant-deb.classpath"/>
 }}}
+
+Here you can find the ant-deb-{version}.jar http://code.google.com/p/ant-deb-task/downloads/list
 
 == Attributes ==
 
