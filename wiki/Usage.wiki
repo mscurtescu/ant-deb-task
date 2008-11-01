@@ -58,6 +58,8 @@ Here you can find the ant-deb-{version}.jar http://code.google.com/p/ant-deb-tas
     * tafileset of conffiles
   * one or more tarfileset
 
+== Examples ==
+Some examples are provided in examples-{version}.tar.gz at http://code.google.com/p/ant-deb-task/downloads/list
 
 = desktopEntry Task =
 
@@ -108,3 +110,6 @@ All the nested elements are used for localized content.
   * *encoding*
   * *modifier*
   * *value* - the actual localized content
+
+== Examples ==
+Some examples are provided in examples-{version}.tar.gz at http://code.google.com/p/ant-deb-task/downloads/list
