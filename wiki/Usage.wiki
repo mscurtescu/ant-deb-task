@@ -5,6 +5,11 @@
 There are two Ant tasks provided.
 The "deb"-task itself is used to create debian packages and the "desktopEntry"-task is used to create desktop entries.
 
+= Tasks =
+[deb]
+
+[desktopEntry]
+
 = deb Task =
 
 == Task definition in your build file ==
