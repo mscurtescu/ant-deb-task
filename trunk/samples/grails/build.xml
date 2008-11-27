@@ -46,20 +46,18 @@ http://groovy.codehaus.org/
             <tarfileset dir="build/${untar.name}" prefix="usr/share/${package.name}">
                 <exclude name="bin/**"/>
                 <exclude name="doc/**"/>
+                <exclude name="samples/**"/>
                 <exclude name="INSTALL"/>
                 <exclude name="LICENSE"/>
                 <exclude name="README"/>
+                <exclude name="build.*"/>
             </tarfileset>
             <tarfileset file="build/${untar.name}/bin/startGrails" prefix="usr/share/${package.name}/bin" filemode="755"/>
             <tarfileset file="local/grails_commands" prefix="etc/bash_completion.d"/>
-            <tarfileset file="local/command-list" prefix="usr/share/${package.name}"/>
             <tarfileset dir="build/bin" prefix="usr/bin" filemode="755"/>
             <tarfileset dir="build/${untar.name}" prefix="usr/share/doc/${package.name}">
                 <include name="LICENSE"/>
                 <include name="README"/>
-            </tarfileset>
-            <tarfileset dir="build/${untar.name}/doc" prefix="usr/share/doc/${package.name}">
-                <include name="**"/>
             </tarfileset>
             <tarfileset dir="build/${unzip.doc.name}" prefix="usr/share/doc/${package.name}/html"/>
         </deb>
