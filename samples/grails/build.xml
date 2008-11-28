@@ -50,7 +50,6 @@ http://groovy.codehaus.org/
                 <exclude name="INSTALL"/>
                 <exclude name="LICENSE"/>
                 <exclude name="README"/>
-                <exclude name="build.*"/>
             </tarfileset>
             <tarfileset file="build/${untar.name}/bin/startGrails" prefix="usr/share/${package.name}/bin" filemode="755"/>
             <tarfileset file="local/grails_commands" prefix="etc/bash_completion.d"/>
