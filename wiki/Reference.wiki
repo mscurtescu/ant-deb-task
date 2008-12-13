@@ -24,3 +24,9 @@ List of valid categories:
 
 = GNU Documentation Files =
  * http://www.gnu.org/prep/standards/html_node/Documentation.html
+
+= Debian Control Files and Fields =
+ * http://www.debian.org/doc/devel-manuals
+ * http://www.debian.org/doc/debian-policy/ch-controlfields.html
+ * http://www.debian.org/doc/manuals/distribute-deb/distribute-deb.html
+ * http://en.wikipedia.org/wiki/Deb_(file_format)
