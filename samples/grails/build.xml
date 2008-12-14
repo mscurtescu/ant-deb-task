@@ -1,18 +1,19 @@
 <project name="Buildfile to generate a Debian package for the Grails Framework" default="dist">
 <!--
-To get a deb built, download these files and put them into the directory
-download:
+To get a deb built, do this:
 
-* grails-bin-${version}.tar.gz
-* grails-docs-${version}.zip
-
-ant just run "ant"
+* download these files and put them into the directory "download":
+ * grails-bin-${version}.tar.gz
+ * grails-docs-${version}.zip
+* checkout the full ant-deb-task project _next_ to this projects directory * and build it
+* run "ant"
 
 
 TODO:
 * download files from the net if not in download directory
 * integrate this directly in the grails build process
-
+* make using extra docs package dependend of existance of file (put out a *
+  warning?!) or the property being set
 
 -->
 
@@ -20,7 +21,10 @@ TODO:
     <property file="project.properties"/>
 
     <path id="classpath">
-        <fileset dir="../../dist" includes="*.jar"/>
+    <!-- for building inside the ant-deb-task tree: -->
+    <!--        <fileset dir="../../dist" includes="*.jar"/> -->
+        <!-- for building outside the ant-deb-tasks tree -->
+        <fileset dir="../ant-deb-task/dist" includes="*.jar"/> 
     </path>
 
     <taskdef resource="ant_deb_task.properties" classpathref="classpath"/>
@@ -28,10 +32,29 @@ TODO:
     <target name="expand" description="expand downloaded packages">
         <mkdir dir="build"/>
         <untar src="download/${download.name}" dest="build" compression="gzip"/>
-        <mkdir dir="build/${unzip.doc.name}"/>
-        <unzip src="download/${download.doc.name}" dest="build/${unzip.doc.name}"/>
+        <!-- 
+        not possible for grails 1.1beta1 but needed to get docs for 1.0.4
+        FIXME: make this actions depending on the property being set!
+        <mkdir dir="build/${unzip.doc.name}/html"/>
+        <unzip src="download/${download.doc.name}" dest="build/${unzip.doc.name}/html"/>
+        -->
     </target>
-    
+
+    <target name="preparedoc" description="prepare doc directory">
+        <mkdir dir="build/${unzip.doc.name}"/>
+        <copy todir="build/${unzip.doc.name}/html/api">
+            <fileset dir="build/${untar.name}/doc/api"/>
+        </copy>
+        <!-- FIXME: 
+        somehow that can be made nicer without repeating the todir too often?!
+        -->
+        <copy todir="build/${unzip.doc.name}" file="debian-files/copyright"/>
+        <copy todir="build/${unzip.doc.name}" file="debian-files/changelog.Debian"/>
+        <copy todir="build/${unzip.doc.name}" file="build/${untar.name}/INSTALL"/>
+        <copy todir="build/${unzip.doc.name}" file="build/${untar.name}/README"/>
+        <copy todir="build/${unzip.doc.name}" file="build/${untar.name}/LICENSE"/>
+    </target>
+
     <target name="prepare-bin" depends="expand">
         <mkdir dir="build/bin"/>
         <copy todir="build/bin">
@@ -44,7 +67,7 @@ TODO:
         <replace dir="build/bin" token="`dirname &quot;$0&quot;`" value="/usr/share/${package.name}/bin # edited by ant-deb-task&#10;export GRAILS_HOME=/usr/share/${package.name}"/>
     </target>
     
-    <target name="dist" depends="expand, prepare-bin" description="build the deb file">
+    <target name="dist" depends="expand, prepare-bin, preparedoc" description="build the deb file">
         <mkdir dir="dist"/>
         <deb
             todir="dist"
@@ -53,7 +76,7 @@ TODO:
             depends="${depends}"
         >
             <version upstream="${version}" debian="${version.debian}"/>
-            <maintainer name="Marius Scurtescu" email="ant.deb.task@gmail.com"/>
+            <maintainer name="Henning Sprang" email="henning@sprang.de"/>
             <description synopsis="web application framework for the Groovy language.">
 Grails aims to bring the "coding by convention" paradigm to Groovy. 
  It's an open-source web application framework that leverages  the Groovy 
@@ -63,7 +86,9 @@ Grails aims to bring the "coding by convention" paradigm to Groovy.
  Grails aims to make development as simple as possible and hence should appeal 
  to a wide range of developers not just those from the Java community.
 
- http://groovy.codehaus.org/
+ http://grails.org/
+
+ created with ant-deb-task - http://code.google.com/p/ant-deb-task
             </description>
             <tarfileset dir="build/${untar.name}" prefix="usr/share/${package.name}">
                 <exclude name="bin/**"/>
@@ -76,11 +101,11 @@ Grails aims to bring the "coding by convention" paradigm to Groovy.
             <tarfileset file="build/${untar.name}/bin/startGrails" prefix="usr/share/${package.name}/bin" filemode="755"/>
             <tarfileset file="local/grails_commands" prefix="etc/bash_completion.d"/>
             <tarfileset dir="build/bin" prefix="usr/bin" filemode="755"/>
-            <tarfileset dir="build/${untar.name}" prefix="usr/share/doc/${package.name}">
-                <include name="LICENSE"/>
-                <include name="README"/>
-            </tarfileset>
-            <tarfileset dir="build/${unzip.doc.name}" prefix="usr/share/doc/${package.name}/html"/>
+            <!-- doc stuff -->
+            <tarfileset dir="build/${unzip.doc.name}" prefix="usr/share/doc/${package.name}/"/>
+            <conffiles dir="local" prefix="etc/bash_completion.d" filemode="644">
+                <include name="grails_commands"/>
+            </conffiles>
         </deb>
     </target>
     
