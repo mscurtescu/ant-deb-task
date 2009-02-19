@@ -1,4 +1,4 @@
-<project name="JavaDeb Task" basedir="." default="release-dist">
+<project name="JavaDeb Task" basedir="." default="dist">
 
     <path id="classpath">
         <pathelement location="build/classes"/>
@@ -70,9 +70,9 @@
          ================================= -->
     <target name="release-dist" depends="dist" description="Release all distribution files">
         <input addproperty="dist.version.number" message="Please enter a version number for your distribution" defaultvalue="0.0.1" />
-    	<move file="dist/${examples.name}.${targz}" tofile="dist/${examples.name}-${dist.version.number}.${targz}"></move>
+    	<move file="dist/${examples.name}.${targz}" tofile="dist/${examples.name}-${dist.version.number}.${targz}" />
     	<move file="dist/${antdeb.name}.jar" tofile="dist/${antdeb.name}-${dist.version.number}.jar"/>
-    	<antcall target="createdeb"></antcall>
+    	<antcall target="createdeb" />
     </target>
 	
     <!-- ================================= 
@@ -133,7 +133,7 @@
         </desktopEntry>
     </target>
 
-    <target name="testDeb" depends="define_tasks" description="Tes the Deb task">
+    <target name="testDeb" depends="define_tasks" description="Test the Deb task">
         <mkdir dir="build/test"/>
         <deb
             todir="build/test"
