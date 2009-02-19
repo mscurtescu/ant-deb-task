@@ -9,6 +9,8 @@ import java.util.*;
 import java.util.regex.*;
 import java.util.zip.*;
 import java.security.MessageDigest;
+import java.net.URL;
+import java.net.MalformedURLException;
 
 /**
  * Task that creates a Debian package.
@@ -290,6 +292,7 @@ public class Deb extends Task
     private String _conflicts;
     private String _provides;
     private String _maintainer;
+    private URL _homepage;
     private Deb.Maintainer _maintainerObj;
     private Deb.Description _description;
 
@@ -394,6 +397,18 @@ public class Deb extends Task
     public void setMaintainer (String maintainer)
     {
         _maintainer = maintainer;
+    }
+
+    public void setHomepage (String homepage)
+    {
+        try
+        {
+            _homepage = new URL (homepage);
+        }
+        catch (MalformedURLException e)
+        {
+            throw new BuildException ("Invalid homepage, must be a URL: " + homepage, e);
+        }
     }
 
     public void setPreinst (File preinst)
@@ -534,6 +549,12 @@ public class Deb extends Task
 
         control.print ("Maintainer: ");
         control.println (_maintainer);
+
+        if (_homepage != null)
+        {
+            control.print ("Homepage: ");
+            control.println(_homepage.toExternalForm());
+        }
 
         control.print ("Description: ");
         control.println (_description.getSynopsis ());
