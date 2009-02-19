@@ -663,21 +663,26 @@ public class Deb extends Task
         }
 
         // add actual data
-        for (int i = 0; i < _data.size (); i++)
-        {
-            TarFileSet data = (TarFileSet) _data.get (i);
-
-            if (data.getUserName() == null || data.getUserName().trim().length() == 0)
-                data.setUserName ("root");
-
-            if (data.getGroup() == null || data.getGroup().trim().length() == 0)
-                data.setGroup ("root");
-
-            dataTar.add (data);
+        if ( _data.size () > 0 ) {
+	        for (int i = 0; i < _data.size (); i++)
+	        {
+	            TarFileSet data = (TarFileSet) _data.get (i);
+	
+	            if (data.getUserName() == null || data.getUserName().trim().length() == 0)
+	                data.setUserName ("root");
+	
+	            if (data.getGroup() == null || data.getGroup().trim().length() == 0)
+	                data.setGroup ("root");
+	
+	            dataTar.add (data);
+	        }
+	
+	        dataTar.execute ();
         }
-
-        dataTar.execute ();
-
+        else {
+        	dataFile.createNewFile();
+        }
+        
         return dataFile;
     }
 
