@@ -33,6 +33,7 @@
             section="devel"
             depends="sun-java5-jre | sun-java6-jre"
             suggests="smartsvn"
+            homepage="http://www.syntevo.com/smartcvs/"
         >
             <version upstream="${version}"/>
             <maintainer email="Marius Scurtescu" name="ant.deb.task@gmail.com"/>
