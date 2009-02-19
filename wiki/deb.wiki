@@ -29,7 +29,9 @@ Here you can find the ant-deb-{version}.jar http://code.google.com/p/ant-deb-tas
   * *suggests*
   * *enhances*
   * *conflicts*
+  * *provides*
   * *maintainer*
+  * *homepage*
   * *preinst*
   * *postinst*
   * *prerm*
