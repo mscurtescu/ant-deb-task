@@ -260,7 +260,7 @@ public class Deb extends Task
 
         public String[] getValues ()
         {
-            return (String[]) sections.toArray (new String[]{});
+            return (String[]) sections.toArray (new String[sections.size()]);
         }
     }
     
@@ -649,21 +649,22 @@ public class Deb extends Task
         dataTar.setCompression (GZIP_COMPRESSION_METHOD);
         dataTar.setLongfile(GNU_LONGFILE_MODE);
 
-        // add folders
-        for (Iterator dataFoldersIter = _dataFolders.iterator (); dataFoldersIter.hasNext ();)
+        if ( _data.size () > 0 )
         {
-            String targetFolder = (String) dataFoldersIter.next ();
+            // add folders
+            for (Iterator dataFoldersIter = _dataFolders.iterator (); dataFoldersIter.hasNext ();)
+            {
+                String targetFolder = (String) dataFoldersIter.next ();
 
-            TarFileSet targetFolderSet = dataTar.createTarFileSet ();
+                TarFileSet targetFolderSet = dataTar.createTarFileSet ();
 
-            targetFolderSet.setFile (_tempFolder);
-            targetFolderSet.setFullpath (targetFolder);
-            targetFolderSet.setUserName ("root");
-            targetFolderSet.setGroup ("root");
-        }
+                targetFolderSet.setFile (_tempFolder);
+                targetFolderSet.setFullpath (targetFolder);
+                targetFolderSet.setUserName ("root");
+                targetFolderSet.setGroup ("root");
+            }
 
-        // add actual data
-        if ( _data.size () > 0 ) {
+            // add actual data
 	        for (int i = 0; i < _data.size (); i++)
 	        {
 	            TarFileSet data = (TarFileSet) _data.get (i);
@@ -679,7 +680,8 @@ public class Deb extends Task
 	
 	        dataTar.execute ();
         }
-        else {
+        else
+        {
         	dataFile.createNewFile();
         }
         
@@ -717,11 +719,10 @@ public class Deb extends Task
             {
                 TarFileSet fileset = (TarFileSet) filesets.next();
 
+                normalizeTargetFolder(fileset);
+
                 String fullPath = fileset.getFullpath (getProject ());
                 String prefix = fileset.getPrefix (getProject ());
-
-                if (prefix.length () > 0 && !prefix.endsWith ("/"))
-                    prefix += '/';
 
                 String [] fileNames = getFileNames(fileset);
                 for (int i = 0; i < fileNames.length; i++)
@@ -749,14 +750,17 @@ public class Deb extends Task
                         // calculate and collect md5 sums
                         md5sums.print (getFileMd5 (file));
                         md5sums.print (' ');
-                        md5sums.println (targetName.replace (File.separatorChar, '/'));
+                        md5sums.println (targetName.substring(2));
 
                         // get target folder names, and collect them (to be added to _data)
                         File targetFile = new File(targetName);
-                        File parentFolder = targetFile.getParentFile () ;
+                        File parentFolder = targetFile.getParentFile ();
                         while (parentFolder != null)
                         {
-                            String parentFolderPath = parentFolder.getPath ().replace(File.separatorChar, '/');
+                            String parentFolderPath = parentFolder.getPath ();
+
+                            if (".".equals(parentFolderPath))
+                                parentFolderPath = "./";
 
                             if (!existingDirs.contains (parentFolderPath) && !_dataFolders.contains (parentFolderPath))
                             {
@@ -769,7 +773,7 @@ public class Deb extends Task
 
                         // write conffiles
                         if (_conffiles.contains (fileset))
-                            conffiles.println (targetName);
+                            conffiles.println (targetName.substring(2));
                     }
                 }
             }
@@ -791,6 +795,35 @@ public class Deb extends Task
         catch (Exception e)
         {
             throw new BuildException (e);
+        }
+    }
+
+    private void normalizeTargetFolder(TarFileSet fileset)
+    {
+        String fullPath = fileset.getFullpath (getProject ());
+        String prefix = fileset.getPrefix (getProject ());
+
+        if (fullPath.length() > 0)
+        {
+            if (fullPath.startsWith("/"))
+                fullPath = "." + fullPath;
+            else if (!fullPath.startsWith("./"))
+                fullPath = "./" + fullPath;
+
+            fileset.setFullpath(fullPath.replace('\\', '/'));
+        }
+
+        if (prefix.length() > 0)
+        {
+            if (!prefix.endsWith ("/"))
+                prefix += '/';
+
+            if (prefix.startsWith("/"))
+                prefix = "." + prefix;
+            else if (!prefix.startsWith("./"))
+                prefix = "./" + prefix;
+
+            fileset.setPrefix(prefix.replace('\\', '/'));
         }
     }
 
