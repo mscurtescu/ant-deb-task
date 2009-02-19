@@ -595,7 +595,7 @@ public class Deb extends Task
         TarFileSet controlFileSet = tar.createTarFileSet ();
 
         controlFileSet.setFile (file);
-        controlFileSet.setFullpath (fullpath);
+        controlFileSet.setFullpath ("./" + fullpath);
 
         controlFileSet.setFileMode (fileMode);
         controlFileSet.setUserName ("root");
