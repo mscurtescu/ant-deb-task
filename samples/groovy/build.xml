@@ -36,6 +36,7 @@
             package="${package.name}"
             section="devel"
             depends="${depends}"
+            homepage="http://groovy.codehaus.org/"
         >
             <version upstream="${version}"/>
             <maintainer name="Marius Scurtescu" email="ant.deb.task@gmail.com"/>
