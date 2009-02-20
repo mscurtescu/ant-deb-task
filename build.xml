@@ -139,7 +139,7 @@
             todir="build/test"
             package="test"
             version="1.1"
-            section="debug"
+            section="devel"
             depends="sun-java5-jre | sun-java6-jre">
             <version epoch="2" upstream="1.1" debian="test1"/>
             <maintainer name="John Tester" email="jtester@example.com"/>
