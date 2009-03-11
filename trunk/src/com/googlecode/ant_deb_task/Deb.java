@@ -3,6 +3,7 @@ package com.googlecode.ant_deb_task;
 import org.apache.tools.ant.*;
 import org.apache.tools.ant.taskdefs.Tar;
 import org.apache.tools.ant.types.*;
+import org.apache.tools.tar.TarOutputStream;
 
 import java.io.*;
 import java.util.*;
@@ -703,7 +704,14 @@ public class Deb extends Task
         }
         else
         {
-        	dataFile.createNewFile();
+        	// create an empty data.tar.gz file which is still a valid tar
+        	TarOutputStream tarStream = new TarOutputStream(
+        		new GZipOutputStream( 
+        			new BufferedOutputStream(new FileOutputStream(dataFile)),
+        			Deflater.BEST_COMPRESSION
+	        	)
+        	);
+        	tarStream.close();
         }
         
         return dataFile;
