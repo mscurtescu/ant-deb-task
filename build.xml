@@ -58,10 +58,18 @@
          - - - - - - - - - - - - - - - - - -->
     <property name="examples.name" value="examples"/>
     <property name="targz" value="tar.gz"/>
-	<target name="examples" depends="jar">
+	<target name="examples">
     	<description>create a zip with the examples</description>
-		<tar destfile="build/${examples.name}.${targz}">
-			<tarfileset dir="samples" includes="**/*"/>
+        <mkdir dir="build"/>
+		<tar destfile="build/${examples.name}.${targz}" compression="gzip">
+			<tarfileset dir="samples">
+                <exclude name="**/build"/>
+                <exclude name="**/build/**"/>
+                <exclude name="**/dist"/>
+                <exclude name="**/dist/**"/>
+                <exclude name="**/download/*"/>
+                <exclude name="**/.ant-targets-build.xml"/>
+            </tarfileset>
 		</tar>
     </target>
 
