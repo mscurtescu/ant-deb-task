@@ -21,10 +21,10 @@ TODO:
     <property file="project.properties"/>
 
     <path id="classpath">
-    <!-- for building inside the ant-deb-task tree: -->
-    <!--        <fileset dir="../../dist" includes="*.jar"/> -->
+        <!-- for building inside the ant-deb-task tree: -->
+        <fileset dir="../../dist" includes="*.jar"/>
         <!-- for building outside the ant-deb-tasks tree -->
-        <fileset dir="../ant-deb-task/dist" includes="*.jar"/> 
+<!--        <fileset dir="../ant-deb-task/dist" includes="*.jar"/>  -->
     </path>
 
     <taskdef resource="ant_deb_task.properties" classpathref="classpath"/>
@@ -32,12 +32,8 @@ TODO:
     <target name="expand" description="expand downloaded packages">
         <mkdir dir="build"/>
         <untar src="download/${download.name}" dest="build" compression="gzip"/>
-        <!-- 
-        not possible for grails 1.1beta1 but needed to get docs for 1.0.4
-        FIXME: make this actions depending on the property being set!
         <mkdir dir="build/${unzip.doc.name}/html"/>
         <unzip src="download/${download.doc.name}" dest="build/${unzip.doc.name}/html"/>
-        -->
     </target>
 
     <target name="preparedoc" description="prepare doc directory">
@@ -74,9 +70,10 @@ TODO:
             package="${package.name}"
             section="devel"
             depends="${depends}"
+            homepage="http://grails.org/"
         >
             <version upstream="${version}" debian="${version.debian}"/>
-            <maintainer name="Henning Sprang" email="henning@sprang.de"/>
+            <maintainer name="Marius Scurtescu" email="ant.deb.task@gmail.com"/>
             <description synopsis="web application framework for the Groovy language.">
 Grails aims to bring the "coding by convention" paradigm to Groovy. 
  It's an open-source web application framework that leverages  the Groovy 
@@ -91,7 +88,7 @@ Grails aims to bring the "coding by convention" paradigm to Groovy.
  created with ant-deb-task - http://code.google.com/p/ant-deb-task
             </description>
             <tarfileset dir="build/${untar.name}" prefix="usr/share/${package.name}">
-                <exclude name="bin/**"/>
+<!--                <exclude name="bin/**"/>  leave the scripts there, needed by NetBeans -->
                 <exclude name="doc/**"/>
                 <exclude name="samples/**"/>
                 <exclude name="INSTALL"/>
