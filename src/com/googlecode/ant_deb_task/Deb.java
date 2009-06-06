@@ -607,7 +607,7 @@ public class Deb extends Task
         
         controlTar.perform ();
 
-        controlFile.delete ();
+        deleteFileCheck(controlFile);
 
         return masterControlFile;
     }
@@ -651,8 +651,10 @@ public class Deb extends Task
             if (_debFilenameProperty.length() > 0)
                 getProject().setProperty(_debFilenameProperty, debFile.getAbsolutePath());
 
-            masterControlFile.delete ();
-            dataFile.delete ();
+            deleteFileCheck(masterControlFile);
+            deleteFileCheck(dataFile);
+
+            deleteFolderCheck(_tempFolder);
         }
         catch (IOException e)
         {
@@ -721,11 +723,14 @@ public class Deb extends Task
     {
         File tempFile = File.createTempFile ("deb", ".dir");
         String tempFolderName = tempFile.getAbsolutePath ();
-        tempFile.delete ();
+        deleteFileCheck(tempFile);
 
         tempFile = new File (tempFolderName, "removeme");
-        tempFile.mkdirs ();
-        tempFile.delete ();
+
+        if (!tempFile.mkdirs ())
+            throw new IOException("Cannot create folder(s): " + tempFile.getAbsolutePath());
+
+        deleteFileCheck(tempFile);
 
         log ("Temp folder: " + tempFolderName, Project.MSG_VERBOSE);
         
@@ -977,5 +982,32 @@ public class Deb extends Task
                 out.close ();
             }
         }
+    }
+
+    private boolean deleteFolder(File folder)
+    {
+        if (folder.isDirectory())
+        {
+            File[] children = folder.listFiles();
+            for (int i = 0; i < children.length; i++)
+            {
+                if (!deleteFolder(children[i]))
+                    return false;
+            }
+        }
+
+        return folder.delete();
+    }
+
+    private void deleteFolderCheck(File folder) throws IOException
+    {
+        if (!deleteFolder(folder))
+            throw new IOException("Cannot delete file: " + folder.getAbsolutePath());
+    }
+
+    private void deleteFileCheck(File file) throws IOException
+    {
+        if (!file.delete ())
+            throw new IOException("Cannot delete file: " + file.getAbsolutePath());
     }
 }
