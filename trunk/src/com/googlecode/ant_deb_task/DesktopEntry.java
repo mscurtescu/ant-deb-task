@@ -155,7 +155,12 @@ public class DesktopEntry extends Task
 
     public void setType (Type type)
     {
-        _entries.put("Type", type.getValue ());
+        String typeValue = type.getValue();
+
+        _entries.put("Type", typeValue);
+
+        if (!typeValue.equals("Application"))
+            _entries.remove("Terminal");
     }
 
     public void setName(String name)
