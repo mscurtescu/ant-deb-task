@@ -802,7 +802,10 @@ public class Deb extends Task
 
                         // write conffiles
                         if (_conffiles.contains (fileset))
-                            conffiles.println (targetName.substring(2));
+                        {
+                            // NOTE: targetName is "./path/file" so substring(1) removes the leading '.'
+                            conffiles.println (targetName.substring(1));
+                        }
                     }
                 }
             }
