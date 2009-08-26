@@ -20,7 +20,7 @@ import java.net.MalformedURLException;
  */
 public class Deb extends Task
 {
-    private static final Pattern PACKAGE_NAME_PATTERN = Pattern.compile("[a-z0-9][a-z0-9+\\-.]+");
+    private static final Pattern PACKAGE_NAME_PATTERN = Pattern.compile("[a-z0-9][a-z0-9" + Pattern.quote("+-.") + "]+");
     
     public static class Description extends ProjectComponent
     {
@@ -94,8 +94,8 @@ public class Deb extends Task
     
     public static class Version extends ProjectComponent
     {
-        private static final Pattern UPSTREAM_VERSION_PATTERN = Pattern.compile("[0-9][A-Za-z0-9+\\-.:]*");
-        private static final Pattern DEBIAN_VERSION_PATTERN = Pattern.compile("[A-Za-z0-9+\\-]+");
+        private static final Pattern UPSTREAM_VERSION_PATTERN = Pattern.compile("[0-9][A-Za-z0-9" + Pattern.quote(".+-:~") + "]*");
+        private static final Pattern DEBIAN_VERSION_PATTERN = Pattern.compile("[A-Za-z0-9" + Pattern.quote("+.~") + "]+");
         
         private int _epoch = 0;
         private String _upstream;
@@ -118,7 +118,7 @@ public class Deb extends Task
         {
             _debian = debian.trim ();
 
-            if (!DEBIAN_VERSION_PATTERN.matcher (_debian).matches ())
+            if (_debian.length() > 0 && !DEBIAN_VERSION_PATTERN.matcher (_debian).matches ())
                 throw new BuildException("Invalid debian version number!");
         }
 
