@@ -29,4 +29,4 @@ List of valid categories:
  * http://www.debian.org/doc/devel-manuals
  * http://www.debian.org/doc/debian-policy/ch-controlfields.html
  * http://www.debian.org/doc/manuals/distribute-deb/distribute-deb.html
- * http://en.wikipedia.org/wiki/Deb_(file_format)
+ * http://lists.debian.org/debian-dpkg/2007/04/msg00076.html
