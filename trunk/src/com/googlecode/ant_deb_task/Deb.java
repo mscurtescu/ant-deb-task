@@ -307,6 +307,7 @@ public class Deb extends Task
     private File _postrm;
     private File _config;
     private File _templates;
+    private File _triggers;
 
     private File _tempFolder;
 
@@ -440,6 +441,11 @@ public class Deb extends Task
     public void setTemplates (File templates)
     {
         _templates = templates;
+    }
+
+    public void setTriggers(File triggers)
+    {
+        _triggers = triggers;
     }
 
     public void addConfFiles (TarFileSet conffiles)
@@ -604,6 +610,9 @@ public class Deb extends Task
 
         if (_templates != null)
             addFileToTar (controlTar, _templates, "templates", "644");
+
+        if (_triggers != null)
+            addFileToTar (controlTar, _triggers, "triggers", "644");
         
         controlTar.perform ();
 
