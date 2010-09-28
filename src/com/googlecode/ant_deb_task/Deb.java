@@ -817,6 +817,8 @@ public class Deb extends Task
                             if (".".equals(parentFolderPath))
                                 parentFolderPath = "./";
 
+                            parentFolderPath = parentFolderPath.replace('\\', '/');
+
                             if (!existingDirs.contains (parentFolderPath) && !_dataFolders.contains (parentFolderPath))
                             {
                                 log ("adding dir: " + parentFolderPath + " for " + targetName, Project.MSG_DEBUG);
