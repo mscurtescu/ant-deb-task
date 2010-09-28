@@ -292,6 +292,7 @@ public class Deb extends Task
     private String _enhances;
     private String _conflicts;
     private String _provides;
+    private String _replaces;
     private String _maintainer;
     private URL _homepage;
     private Deb.Maintainer _maintainerObj;
@@ -390,10 +391,15 @@ public class Deb extends Task
     {
         _conflicts = conflicts;
     }
-    
+
     public void setProvides (String provides)
     {
-    	_provides = provides;
+   	    _provides = provides;
+    }
+
+    public void setReplaces(String replaces)
+    {
+   	    _replaces = replaces;
     }
 
     public void setMaintainer (String maintainer)
@@ -541,11 +547,17 @@ public class Deb extends Task
             control.print ("Conflicts: ");
             control.println (_conflicts);
         }
-        
+
         if (_provides != null)
         {
-        	control.print ("Provides: ");
-        	control.println (_provides);
+       	    control.print ("Provides: ");
+       	    control.println (_provides);
+        }
+
+        if (_replaces != null)
+        {
+       	    control.print ("Replaces: ");
+       	    control.println (_replaces);
         }
 
         if (installedSize > 0)
