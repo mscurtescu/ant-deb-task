@@ -359,52 +359,52 @@ public class Deb extends Task
 
     public void setArchitecture (String architecture)
     {
-        _architecture = architecture;
+        _architecture = sanitize(architecture, _architecture);
     }
 
     public void setDepends (String depends)
     {
-        _depends = depends;
+        _depends = sanitize(depends);
     }
 
     public void setPreDepends (String preDepends)
     {
-        _preDepends = preDepends;
+        _preDepends = sanitize(preDepends);
     }
 
     public void setRecommends (String recommends)
     {
-        _recommends = recommends;
+        _recommends = sanitize(recommends);
     }
 
     public void setSuggests (String suggests)
     {
-        _suggests = suggests;
+        _suggests = sanitize(suggests);
     }
 
     public void setEnhances (String enhances)
     {
-        _enhances = enhances;
+        _enhances = sanitize(enhances);
     }
 
     public void setConflicts (String conflicts)
     {
-        _conflicts = conflicts;
+        _conflicts = sanitize(conflicts);
     }
 
     public void setProvides (String provides)
     {
-   	    _provides = provides;
+   	    _provides = sanitize(provides);
     }
 
     public void setReplaces(String replaces)
     {
-   	    _replaces = replaces;
+   	    _replaces = sanitize(replaces);
     }
 
     public void setMaintainer (String maintainer)
     {
-        _maintainer = maintainer;
+        _maintainer = sanitize(maintainer);
     }
 
     public void setHomepage (String homepage)
@@ -1032,5 +1032,19 @@ public class Deb extends Task
     {
         if (!file.delete ())
             throw new IOException("Cannot delete file: " + file.getAbsolutePath());
+    }
+
+    private String sanitize(String value) {
+        return sanitize(value, null);
+    }
+
+    private String sanitize(String value, String defaultValue) {
+        if (value == null) {
+            return defaultValue;
+        }
+
+        value = value.trim();
+
+        return value.length() == 0 ? defaultValue : value;
     }
 }
