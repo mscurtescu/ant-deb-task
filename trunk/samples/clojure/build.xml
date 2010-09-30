@@ -1,0 +1,61 @@
+<project name="Java application deb packager" default="dist">
+
+    <property file="project.properties"/>
+
+    <path id="classpath">
+        <fileset dir="../../dist" includes="*.jar"/>
+    </path>
+
+    <taskdef resource="ant_deb_task.properties" classpathref="classpath"/>
+
+    <target name="unzip" description="unzip downloaded package">
+        <mkdir dir="build"/>
+        <unzip src="download/${download.name}" dest="build"/>
+        <unzip src="download/${download.contrib.name}" dest="build"/>
+    </target>
+    
+    <target name="dist" depends="unzip" description="build the deb file">
+        <mkdir dir="dist"/>
+        <deb
+            todir="dist"
+            package="${package.name}"
+            section="devel"
+            depends="${depends}"
+        >
+            <version upstream="${version}" debian="${version.debian}"/>
+            <maintainer name="Marius Scurtescu" email="ant.deb.task@gmail.com"/>
+            <description synopsis="The Clojure Programming Language">
+Clojure is a dynamic programming language that targets the Java Virtual Machine (and the CLR ). It is designed to be a general-purpose language, combining the approachability and interactive development of a scripting language with an efficient and robust infrastructure for multithreaded programming. Clojure is a compiled language - it compiles directly to JVM bytecode, yet remains completely dynamic. Every feature supported by Clojure is supported at runtime. Clojure provides easy access to the Java frameworks, with optional type hints and type inference, to ensure that calls to Java can avoid reflection.
+
+Clojure is a dialect of Lisp, and shares with Lisp the code-as-data philosophy and a powerful macro system. Clojure is predominantly a functional programming language, and features a rich set of immutable, persistent data structures. When mutable state is needed, Clojure offers a software transactional memory system and reactive Agent system that ensure clean, correct, multithreaded designs.
+
+http://clojure.org/
+            </description>
+            <tarfileset dir="build/${unzip.name}" prefix="usr/share/${package.name}">
+                <exclude name="doc/**"/>
+                <exclude name="build.xml"/>
+                <exclude name="epl-v10.html"/>
+                <exclude name="install"/>
+                <exclude name="pom-template.xml"/>
+                <exclude name="readme.txt"/>
+                <exclude name="changes.txt"/>
+                <exclude name=".gitignore"/>
+            </tarfileset>
+            <tarfileset dir="local" prefix="/usr/bin" filemode="755">
+                <include name="clojure"/>
+            </tarfileset>
+            <tarfileset dir="build/${unzip.name}" prefix="usr/share/doc/${package.name}">
+                <include name="doc/**"/>
+                <include name="epl-v10.html"/>
+                <include name="readme.txt"/>
+                <include name="changes.txt"/>
+            </tarfileset>
+        </deb>
+    </target>
+    
+    <target name="clean" description="remove all work folders">
+        <delete dir="build"/>
+        <delete dir="dist"/>
+    </target>
+
+</project>
